@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html>
+  <head lang="en">
+    <meta charset="utf-8">
+    <title>Statistics</title>
+    <link rel="stylesheet" type="text/css"
+          href="https://fonts.googleapis.com/css?family=Questrial">
+    <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/site.css' %}">
+  </head>
+  <body>
+    <header>
+      <div>Weather Maniac</div>
+  </header>
+    <nav>
+      <ul>
+        <li><a href="{% url 'index' %}">Go to the Index page.</a></li>
+        <li><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
+      </ul>
+    </nav>
+  </body>
+</html>

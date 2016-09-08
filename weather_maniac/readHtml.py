@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from utilities import calc_days_in_adv
 
 
+
 def get_min_max_from_html(file_name):
     date_format = '%Y_%m_%d'
     predict_date = datetime.strptime(file_name[-24:-14], date_format)

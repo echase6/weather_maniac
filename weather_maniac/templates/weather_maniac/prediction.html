@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html>
+  <head lang="en">
+    <meta charset="utf-8">
+    <title>Prediction</title>
+    <link rel="stylesheet" type="text/css"
+          href="https://fonts.googleapis.com/css?family=Questrial">
+    <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/site.css' %}">
+    <link rel="stylesheet" href="{% static 'weather_maniac/app.css' %}">
+  </head>
+  <body>
+    <header>
+      <div>Weather Maniac</div>
+  </header>
+    <nav>
+      <ul>
+        <li><a href="{% url 'index' %}">Go to the Index page.</a></li>
+        <li><a href="{% url 'prediction' %}">Get a 7-day temperature prediction.</a>
+        </li>
+      </ul>
+    </nav>
+    <script>var data_json = "{% static 'weather_maniac/data.json' %}"</script>
+    <script>var marker_json = "{% static 'weather_maniac/markers.json' %}"</script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="{% static 'weather_maniac/app.js' %}"></script>
+  </body>
+</html>

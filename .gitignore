@@ -1,10 +1,22 @@
-venv
+# Pre-parsed Python
 __pycache__
 
-.DS_Store
+# Virtualenvs
+venv
 
+# PyCharm Temporary Files
+.cache
+
+# Django Default DB
 db.sqlite3
 
-staticfiles
+# Bothersome files
+.flake8
+.gitignore
+.style.yapf
+.idea
+*.jnk
 
-mediafiles
+# Non-tracked directories
+demos/
+stubs/

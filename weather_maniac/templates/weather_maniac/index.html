@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Weather Maniac</title>
+    <link rel="stylesheet" type="text/css"
+          href="https://fonts.googleapis.com/css?family=Questrial">
+    <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/site.css' %}">
+  </head>
+  <body>
+    <header>
+      <div>Weather Maniac</div>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
+      <li><a href="{% url 'prediction' %}">Get a 7-day temperature prediction.</a></li>
+    </ul>
+  </nav>
+  <p>
+    Follow the links to find out what the temperature will really be, with some
+    level of confidence.
+  </p>
+    <p>
+    Since temperature forecasting is an inexact science, historical predictions
+    have been analyzed to find out what error to expect, given the number of
+    days in-advance a prediction is made.
+  </p>
+    <p>
+    Due to the statistical nature of these errors, confidence-levels are the
+    best option.  Choose between 50% and 99% to get a feel for what to expect,
+    understanding that 100% certainty is an impossibility.
+  </p>
+  </body>
+</html>
