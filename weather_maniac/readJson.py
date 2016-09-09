@@ -3,7 +3,7 @@
 import json
 from datetime import datetime
 from itertools import groupby
-from utilities import calc_days_in_adv
+from .utilities import calc_days_in_adv
 
 
 def temp_f(temp_k):

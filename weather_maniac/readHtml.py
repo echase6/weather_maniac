@@ -3,7 +3,7 @@
 from datetime import datetime
 from itertools import chain, groupby
 from bs4 import BeautifulSoup
-from utilities import calc_days_in_adv
+from .utilities import calc_days_in_adv
 
 
 

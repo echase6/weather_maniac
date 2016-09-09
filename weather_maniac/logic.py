@@ -92,11 +92,13 @@ def get_min_max_from_json(file_name):
         days_in_advance = calc_days_in_adv(predict_date, forecast_utc)
         temp = temp_f(row['main']['temp'])
         date_temp.append([days_in_advance, temp])
-    highest_list = {0: None}
-    lowest_list = {0: None}
-    highest_list.update({k: max([v[1] for v in g])
+    max_dict = _get_initialized_dict()
+    min_dict = _get_initialized_dict()
+    max_dict.update({k: max([v[1] for v in g])
                         for k, g in groupby(date_temp, lambda x: x[0])})
-    lowest_list.update({k: min([v[1] for v in g])
+    min_dict.update({k: min([v[1] for v in g])
                        for k, g in groupby(date_temp, lambda x: x[0])})
-    return lowest_list, highest_list
+    forecast_obj = _create_save_forecast(
+        predict_date, 'html', max_dict, min_dict)
+    return forecast_obj
 

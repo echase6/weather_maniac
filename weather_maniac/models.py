@@ -1,79 +1,140 @@
 """weather_maniac Models."""
 
 from django.db import models
+import datetime
+
+SOURCES = ['html', 'api']
 
 
-class Forecast(models.Model):
-    """Forecast from a particular source.
+class ForecastPoint(models.Model):
+    """Models to hold forecast points.
 
-    date_made is the calendar day that the forecast was made
-    source is a string holding a reference of the forecaster
-    max/min temp dictionaries have keys as the day in advance the forecast
-       covers, 0:today, 1:tomorrow, 2:day-after-tomorrow, etc.
+    date_made holds the date the forecast was made
+    date_covers holds the date the forecast if for
+    source identifies the forecaster; it is a member of SOURCES
+    max/min are the forecasted max/min, in Fahrenheit
     """
     date_made = models.DateField()
-    source = models.TextField()
-    max_temp = {k: models.IntegerField() for k in range(8)}
-    min_temp = {k: models.IntegerField() for k in range(8)}
-
-    def __str__(self):
-        return self.source, self.date_made
-
-    def __repr__(self):
-        return 'Forecast(source:{!r}, date:{!r}'.format(
-            self.source,
-            self.date_made
-        )
-
-
-class DayRecord(models.Model):
-    """Record for an individual day."""
-    date = models.DateField()
-
-    def __str__(self):
-        return self.date
-
-    def __repr__(self):
-        return 'DayRecord(date:{!r}'.format(
-            self.date
-        )
-
-
-class SourceDayRecord(models.Model):
-    """Record for an individual forecaster.
-
-    day is the day where a temperature wes measured.
-    source is a string holding a reference of the forecaster
-    min/max temp dictionaries have keys as the day in the past the forecast
-       covers, 0:today, 1:yesterday, 2:day-before-yesterday, etc.
-    """
-    day = models.ForeignKey(DayRecord)
-    source = models.TextField
-    max_temp = {k: models.IntegerField() for k in range(8)}
-    min_temp = {k: models.IntegerField() for k in range(8)}
-
-    def __str__(self):
-        return self.source, self.day
-
-    def __repr__(self):
-        return 'SourceDayRecord(source:{!r}, date:{!r}'.format(
-            self.source,
-            self.day
-        )
-
-
-class ActualDayRecord(models.Model):
-    """Actual measured temp on a particular day."""
-    day = models.ForeignKey(DayRecord)
-    location = models.TextField()
+    date_covers = models.DateField()
+    source = models.CharField(max_length=6)
     max_temp = models.IntegerField()
     min_temp = models.IntegerField()
 
     def __str__(self):
-        return self.location, self.day
+        r"""String function
+
+        >>> str(ForecastPoint(date_made=datetime.datetime(2016,6,1),
+        ... date_covers=datetime.datetime(2016,6,2),
+        ... source='html', max_temp=83, min_temp=50))
+        '2016-06-01 00:00:00, 2016-06-02 00:00:00, html, 83, 50'
+        """
+        return ', '.join([
+            str(self.date_made),
+            str(self.date_covers),
+            self.source,
+            str(self.max_temp),
+            str(self.min_temp)
+        ])
 
     def __repr__(self):
-        return 'ActualDayRecord(location:{!r}, date:{!r}'.format(
+        r"""Repr function
+
+        >>> repr(ForecastPoint(date_made=datetime.datetime(2016,6,1),
+        ... date_covers=datetime.datetime(2016,6,2),
+        ... source='html', max_temp=83, min_temp=50))
+        "ForecastPoint(date_made=datetime.datetime(2016, 6, 1, 0, 0), date_covers=datetime.datetime(2016, 6, 2, 0, 0), source='html', max_temp=83, min_temp=50"
+        """
+        return 'ForecastPoint(date_made={!r}, date_covers={!r}, source={!r}, ' \
+               'max_temp={!r}, min_temp={!r}'.format(
+            self.date_made,
+            self.date_covers,
+            self.source,
+            self.max_temp,
+            self.min_temp
+        )
+
+
+class DayRecord(models.Model):
+    """Record (forecasted) for an individual day.
+
+    date_reference is the date a temperature forecast applies to.
+    day_in_advance is the number of days in advance the forecast was made (0-7)
+    source identifies the forecaster; it is a member of SOURCES
+    """
+    date_reference = models.DateField()
+    day_in_advance = models.IntegerField()
+    source = models.CharField(max_length=6)
+    max_temp = models.IntegerField()
+    min_temp = models.IntegerField()
+
+    def __str__(self):
+        r"""String function
+
+        >>> str(DayRecord(date_reference=datetime.datetime(2016,6,1),
+        ... day_in_advance=3, source='html', max_temp=83, min_temp=50))
+        '2016-06-01 00:00:00, 3, html, 83, 50'
+        """
+        return ', '.join([
+            str(self.date_reference),
+            str(self.day_in_advance),
+            self.source,
+            str(self.max_temp),
+            str(self.min_temp)
+        ])
+
+    def __repr__(self):
+        r"""Repr function
+
+        >>> repr(DayRecord(date_reference=datetime.datetime(2016,6,1),
+        ... day_in_advance=3, source='html', max_temp=83, min_temp=50))
+        "DayRecord(date=datetime.datetime(2016, 6, 1, 0, 0), day in advance=3, source='html', max temp=83, min temp=50"
+        """
+        return 'DayRecord(date={!r}, day in advance={!r}, source={!r}, ' \
+               'max temp={!r}, min temp={!r}'.format(
+            self.date_reference,
+            self.day_in_advance,
+            self.source,
+            self.max_temp,
+            self.min_temp
+        )
+
+
+class ActualDayRecord(models.Model):
+    """Actual temperatures on an individual day.
+
+    date_meas is the date a temperature was measured.
+    location is a string that identifies the location the temp was measured.
+    """
+    date_meas = models.DateField()
+    location = models.CharField(max_length=6)
+    max_temp = models.IntegerField()
+    min_temp = models.IntegerField()
+
+    def __str__(self):
+        r"""String function
+
+        >>> str(ActualDayRecord(date_meas=datetime.datetime(2016, 6, 1),
+        ... location="PDX", max_temp=83, min_temp=50))
+        '2016-06-01 00:00:00, PDX, 83, 50'
+        """
+        return ', '.join([
+            str(self.date_meas),
             self.location,
-            self.day
+            str(self.max_temp),
+            str(self.min_temp)
+        ])
+
+    def __repr__(self):
+        r"""Repr function
+
+        >>> repr(ActualDayRecord(date_meas=datetime.datetime(2016, 6, 1),
+        ... location="PDX", max_temp=83, min_temp=50))
+        "ActualDayRecord(date=datetime.datetime(2016, 6, 1, 0, 0), location='PDX', max_temp=83, min_temp=50)"
+        """
+        return 'ActualDayRecord(date={!r}, location={!r}, max_temp={!r}, ' \
+               'min_temp={!r})'.format(
+            self.date_meas,
+            self.location,
+            self.max_temp,
+            self.min_temp
         )

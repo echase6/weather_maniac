@@ -20,3 +20,6 @@ db.sqlite3
 # Non-tracked directories
 demos/
 stubs/
+
+# Hide keys
+key.py

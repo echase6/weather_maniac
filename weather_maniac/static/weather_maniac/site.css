@@ -1,9 +1,40 @@
 body {
   font-family: 'Questrial', serif;
   font-size: 24px;
+  position:fixed;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
 }
 
 header {
+  background-color: DeepSkyBlue;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+h1 {
   text-align: center;
+  color: WhiteSmoke;
   font-size: 48px;
+  /*flex: 1;*/
+}
+
+h2 {
+  text-align: center;
+  color: WhiteSmoke;
+  font-size: 20px;
+  /*flex: 1;*/
+}
+
+.body-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+}
+
+.footer-wrapper {
+  display: flex;
+  flex-direction: row;
 }

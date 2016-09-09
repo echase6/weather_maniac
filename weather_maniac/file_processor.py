@@ -4,9 +4,11 @@ import csv
 import itertools
 from os import listdir, rename
 from os.path import getsize, isfile, join
+import datetime
 
-from readJson import get_min_max_from_json
-from readHtml import get_min_max_from_html
+from .logic import get_min_max_from_json
+from .logic import get_min_max_from_html
+from . import models
 
 root_path = 'C:/Users/Eric/Desktop/Weatherman/'
 container_path = root_path + 'Reduced_Data/'
@@ -61,10 +63,43 @@ def process_html_files():
         move_file_to_archive(f, html_data_path, html_arch_path)
 
 
+def _create_day_record(date):
+    """  """
+    new_record = models.DayRecord(date_reference=date)
+    for source in models.SOURCES:
+        new_source_record = models.SourceDayRecord(day=new_record, source=source)
+        new_source_record.save()
+    new_record.save()
+    return new_record
+
+
+def _date_range(start_date, end_date):
+    for n in range(int ((end_date - start_date).days)):
+        yield start_date + datetime.timedelta(n)
+
+
+def load_day_record():
+    """Load the day records."""
+    start_day = datetime.datetime(2016, 6, 16, 0, 0)
+    end_day = datetime.datetime(2016, 6, 26, 0, 0)
+    day_records = models.DayRecord.objects.filter(date_reference__range=(start_day, end_day))
+    for single_date in _date_range(start_day, end_day):
+        day_record = day_records.get(date_reference__iexact=single_date)
+        if not day_record:
+            day_record = _create_day_record(single_date)
+        for source in models.SOURCES:
+            models.SourceDayRecord.objects.get(date=single_date, source=source)
+
+
+
+
+
+
+
 def main():
     process_html_files()
     process_api_files()
-
+    load_day_record()
 
 if __name__ == '__main__':
     main()
