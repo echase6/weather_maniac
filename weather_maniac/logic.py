@@ -3,7 +3,6 @@
 
 from datetime import datetime, timedelta
 import json
-from itertools import chain, groupby
 from bs4 import BeautifulSoup
 from . import utilities
 from . import models
@@ -93,7 +92,10 @@ def _get_forecasts_from_html(html_soup):
 
 
 def _get_retimed_fcsts_from_html(daily_forecasts, predict_date):
-    """Harvests temperature points from html file. """
+    """Harvests temperature points from html file.
+
+    Returns a dict with keys as day in advance, values as (max_temp, min_temp).
+    """
     days_to_max_min = {}
     for forecast in daily_forecasts:
         forecast_utc = int(forecast.span['data-time'])
@@ -105,10 +107,22 @@ def _get_retimed_fcsts_from_html(daily_forecasts, predict_date):
     return days_to_max_min
 
 
+def process_days_to_max_min(days_to_max_min, predict_date, source):
+    """Iterate through dict holding days-in-advance and max/min temps, and
+          call forecast creation function with the results.
+    """
+    for day_in_advance, (max_temp, min_temp) in days_to_max_min.items():
+        date_reference = predict_date + timedelta(day_in_advance)
+        try:
+            _update_forecast(date_reference, day_in_advance, source,
+                             max_temp, min_temp)
+        except ValueError as error:
+            print(error)
+
+
 def process_html_file(file_name):
     """Main function to extract max and min temperatures from one HTML file
         and save the contents to a DayRecord.
-
 
     The prediction date comes from when the file was read, and is encoded in
        the filename.  The html file contains a forecast time, but this is ignored.
@@ -119,12 +133,7 @@ def process_html_file(file_name):
     html_soup = _get_html_soup(file_name)
     daily_forecasts = _get_forecasts_from_html(html_soup)
     days_to_max_min = _get_retimed_fcsts_from_html(daily_forecasts, predict_date)
-    for day_in_advance, (max_temp, min_temp) in days_to_max_min.items():
-        date_reference = predict_date + timedelta(day_in_advance)
-        try:
-            _update_forecast(date_reference, day_in_advance, 'html', max_temp, min_temp)
-        except ValueError as error:
-            print(error)
+    process_days_to_max_min(days_to_max_min, predict_date, 'html')
 
 
 def temp_f(temp_k):
@@ -144,17 +153,22 @@ def _get_json(file_name):
 
 
 def _get_retimed_fcsts_from_json(json_data, predict_date):
-    """Harvests temperature points from json file. """
-    date_temp = {}
+    """Harvests temperature points from json file.
+
+    Returns a dict with keys as day in advance, values as (max_temp, min_temp).
+    """
+    date_max_min_temp = {}
     for row in json_data['list']:
         forecast_utc = row['dt']
         days_in_advance = utilities.calc_days_in_adv(predict_date, forecast_utc)
-        temp = int(temp_f(row['main']['temp']))
-        if days_in_advance in date_temp:
-            date_temp[days_in_advance] += [temp]
+        new_temp = int(temp_f(row['main']['temp']))
+        if days_in_advance in date_max_min_temp:
+            (max_temp, min_temp) = date_max_min_temp[days_in_advance]
+            date_max_min_temp[days_in_advance] = (max([new_temp, max_temp]),
+                                                  min([new_temp, min_temp]))
         else:
-            date_temp[days_in_advance] = [temp]
-    return date_temp
+            date_max_min_temp[days_in_advance] = (new_temp, new_temp)
+    return date_max_min_temp
 
 
 def process_json_file(file_name):
@@ -170,14 +184,7 @@ def process_json_file(file_name):
     """
     predict_date = _get_date(file_name[-19:-9])
     json_data = _get_json(file_name)
-    date_temp = _get_retimed_fcsts_from_json(json_data, predict_date)
-    days_to_max_min = {}
-    for item in date_temp.items():
-        days_to_max_min[item[0]] = (max(item[1]), min(item[1]))
-    for day_in_advance, (max_temp, min_temp) in days_to_max_min.items():
-        date_reference = predict_date + timedelta(day_in_advance)
-        try:
-            _update_forecast(date_reference, day_in_advance, 'api', max_temp, min_temp)
-        except ValueError as error:
-            print(error)
+    days_to_max_min = _get_retimed_fcsts_from_json(json_data, predict_date)
+    process_days_to_max_min(days_to_max_min, predict_date, 'api')
+
 
