@@ -11,7 +11,7 @@ api_arch_path = root_path + 'API_Arch/'
 html_data_path = root_path + 'HTML_Data/'
 html_arch_path = root_path + 'HTML_Arch/'
 actual_data_path = root_path + 'ACT_Data/'
-actual_arch_path = root_path + 'ACT_Arch'
+actual_arch_path = root_path + 'ACT_Arch/'
 
 
 def move_file_to_archive(f, data_path, arch_path):

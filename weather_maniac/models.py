@@ -5,6 +5,7 @@ import datetime
 
 SOURCES = ['html', 'api']
 TYPES = ['max', 'min']
+LOCATIONS = ['AUR', 'OCO', 'PDX', 'TRO', 'KGW', 'GRE', 'PWO', 'BNP']
 
 
 class ForecastPoint(models.Model):
