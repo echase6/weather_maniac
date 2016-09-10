@@ -2,6 +2,7 @@
 
 
 from datetime import datetime, timedelta
+import csv
 import json
 from bs4 import BeautifulSoup
 from . import utilities
@@ -32,7 +33,7 @@ def _qualify_date(date):
     False
     """
     return all([
-        date > datetime(2016, 6, 1, 0, 0),
+        date > datetime(2016, 5, 1, 0, 0),
         date < datetime(2116, 6, 1, 0, 0),
         date == date.replace(hour=0, minute=0, second=0, microsecond=0)
     ])
@@ -43,7 +44,7 @@ def _qualify_fields(date, day_in_advance, source, max_temp, min_temp):
     if not _qualify_date(date):
         raise ValueError('Date not as expected.  Got {}'.format(date))
     if source not in models.SOURCES:
-        raise ValueError('Soucre not correct.  Got {}'.format(source))
+        raise ValueError('Source not correct.  Got {}'.format(source))
     if day_in_advance < 0 or day_in_advance > 7:
         raise ValueError('Day in advance not correct.  Got {}'.format(day_in_advance))
     if max_temp < -99 or max_temp > 199:
@@ -187,4 +188,62 @@ def process_json_file(file_name):
     days_to_max_min = _get_retimed_fcsts_from_json(json_data, predict_date)
     process_days_to_max_min(days_to_max_min, predict_date, 'api')
 
+
+def _get_actual(date, location, max_min_type):
+    """Get the actual point, creating a new one if needed."""
+    _qualify_act_fields(date, max_min_type)
+    try:
+        act = models.ActualDayRecord.objects.get(
+            date_meas=date,
+            location=location,
+            type=max_min_type
+        )
+    except models.ActualDayRecord.DoesNotExist:
+        act = models.ActualDayRecord(
+        date_meas=date,
+        location=location,
+        type=max_min_type
+    )
+    return act
+
+
+def _qualify_act_fields(date, type):
+    """Field qualifiers, prior to saving record."""
+    if not _qualify_date(date):
+        raise ValueError('Date not as expected.  Got {}'.format(date))
+    if type not in models.TYPES:
+        raise ValueError('Type not as expected.  Got {}'.format(type))
+
+
+def _process_csv_row(row, locations, max_min_type):
+    """Convert the csv rows into saved model records."""
+    date = datetime.strptime(row[0], '%Y%m%d')
+    for i, location in enumerate(locations):
+        if row[i+1].isnumeric():
+            if max_min_type in models.TYPES:
+                act_temp_model = _get_actual(date, location, max_min_type)
+                act_temp_model.temp = int(row[i+1])
+        act_temp_model.save()
+
+
+def process_actual_file(filename):
+    """Iterate through the csv file, acting appropriately for each row.
+
+    Main function to extract actual temperatures from the .csv file and
+       save the contents in an ActualDayRecord.
+
+    There are two files, one holding max temps and another holding in temps.
+       Whether it is max or min is encoded in the filename.
+    The first row of the csv file should hold the locations.
+    """
+    max_min_type = filename[-7:-4]
+    locations = []
+    with open(filename, newline='') as csvfile:
+        csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        for row in csv_reader:
+            print(row)
+            if row[0] == 'Date':
+                locations = row[1:]
+            else:
+                _process_csv_row(row, locations, max_min_type)
 

@@ -10,6 +10,8 @@ api_data_path = root_path + 'API_Data/'
 api_arch_path = root_path + 'API_Arch/'
 html_data_path = root_path + 'HTML_Data/'
 html_arch_path = root_path + 'HTML_Arch/'
+actual_data_path = root_path + 'ACT_Data/'
+actual_arch_path = root_path + 'ACT_Arch'
 
 
 def move_file_to_archive(f, data_path, arch_path):
@@ -36,9 +38,20 @@ def process_html_files():
             move_file_to_archive(f, html_data_path, html_arch_path)
 
 
+def process_actual_files():
+    onlyfiles = [f for f in listdir(actual_data_path) if isfile(join(actual_data_path, f))]
+    for f in onlyfiles:
+        f_string = f
+        print('processing Actuals {}'.format(f_string))
+        if getsize(actual_data_path + f) > 10:
+            logic.process_actual_file(actual_data_path + f)
+            move_file_to_archive(f, actual_data_path, actual_arch_path)
+
+
 def main():
     process_html_files()
     process_api_files()
+    process_actual_files()
 
 if __name__ == '__main__':
     main()

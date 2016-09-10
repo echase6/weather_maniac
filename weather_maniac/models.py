@@ -4,6 +4,7 @@ from django.db import models
 import datetime
 
 SOURCES = ['html', 'api']
+TYPES = ['max', 'min']
 
 
 class ForecastPoint(models.Model):
@@ -104,37 +105,108 @@ class ActualDayRecord(models.Model):
 
     date_meas is the date a temperature was measured.
     location is a string that identifies the location the temp was measured.
+    type is 'max' or 'min', a member of TYPES
     """
     date_meas = models.DateField()
     location = models.CharField(max_length=6)
-    max_temp = models.IntegerField()
-    min_temp = models.IntegerField()
+    type = models.CharField(max_length=6)
+    temp = models.IntegerField()
 
     def __str__(self):
         r"""String function
 
         >>> str(ActualDayRecord(date_meas=datetime.datetime(2016, 6, 1),
-        ... location="PDX", max_temp=83, min_temp=50))
-        '2016-06-01 00:00:00, PDX, 83, 50'
+        ... location="PDX", type='min', temp=50))
+        '2016-06-01 00:00:00, PDX, min, 50'
         """
         return ', '.join([
             str(self.date_meas),
             self.location,
-            str(self.max_temp),
-            str(self.min_temp)
+            self.type,
+            str(self.temp)
         ])
 
     def __repr__(self):
         r"""Repr function
 
         >>> repr(ActualDayRecord(date_meas=datetime.datetime(2016, 6, 1),
-        ... location="PDX", max_temp=83, min_temp=50))
-        "ActualDayRecord(date=datetime.datetime(2016, 6, 1, 0, 0), location='PDX', max_temp=83, min_temp=50)"
+        ... location="PDX", type='min', temp=50))
+        "ActualDayRecord(date=datetime.datetime(2016, 6, 1, 0, 0), location='PDX', type='min', temp=50)"
         """
-        return 'ActualDayRecord(date={!r}, location={!r}, max_temp={!r}, ' \
-               'min_temp={!r})'.format(
+        return 'ActualDayRecord(date={!r}, location={!r}, type={!r}, ' \
+               'temp={!r})'.format(
             self.date_meas,
             self.location,
-            self.max_temp,
-            self.min_temp
+            self.type,
+            self.temp
+        )
+
+
+class ErrorHistogram(models.Model):
+    """Histogram of forecast errors
+
+    source is the forecasting source, a member of SOURCES
+    type is either 'max' or 'min'.  length kept longer in case this is
+       expanded to include rain, or other forecasting metrics
+
+    Will hold modeled parameters to avoid re-calculation.
+    Will be the parent of bins which represent the data.
+    """
+    source = models.CharField(max_length=6)
+    type = models.CharField(max_length=6)
+
+    def __str__(self):
+        r"""String function
+
+        >>> str(ErrorHistogram(source='api', type='max'))
+        'api, max'
+        """
+        return ', '.join([
+            self.source,
+            self.type
+        ])
+
+    def __repr__(self):
+        r"""Repr function
+
+        >>> repr(ErrorHistogram(source='api', type='max'))
+        "ErrorHistogram(source='api', type='max')"
+        """
+        return 'ErrorHistogram(source={!r}, type={!r})'.format(
+            self.source,
+            self.type
+        )
+
+
+class ErrorBin(models.Model):
+    """Bin holding forecast error
+
+    member_of_hist holds the histogram ID
+    error holds the error amount:  forecast - actual, deg Fahrenheit
+    quantity holds the number of times this error occurred
+    """
+    member_of_hist = models.ForeignKey(ErrorHistogram)
+    error = models.IntegerField()
+    quantity = models.IntegerField()
+
+    def __str__(self):
+        r"""String function
+
+        >>> str(ErrorBin(error=-1, quantity=10))
+        '-1, 10'
+        """
+        return ', '.join([
+            str(self.error),
+            str(self.quantity)
+        ])
+
+    def __repr__(self):
+        r"""Repr function
+
+        >>> repr(ErrorBin(error=-1, quantity=10))
+        'ErrorBin(error=-1, quantity=10)'
+        """
+        return 'ErrorBin(error={!r}, quantity={!r})'.format(
+            self.error,
+            self.quantity
         )
