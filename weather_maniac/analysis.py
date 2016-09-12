@@ -1,6 +1,7 @@
 """Weather Maniac Analysis modules."""
 
 from . import models
+from django.db.models import Max, Min
 
 
 def display_error_vs_date(source, location, type, day_in_advance):
@@ -39,10 +40,10 @@ def create_histogram(source, location, type, day_in_advance):
     )
 
 
-def create_bin(hist_id, error, quantity, start_date, end_date):
+def create_bin(histo, error, quantity, start_date, end_date):
     """Create Error Histogram."""
-    return models.ErrorHistogram(
-        member_of_hist=hist_id,
+    return models.ErrorBin(
+        member_of_hist=histo,
         error=error,
         quantity=quantity,
         start_date=start_date,
@@ -70,12 +71,12 @@ def _update_histogram(source, location, type, day_in_advance, error, date):
             error=error
         )
     except models.ErrorBin.DoesNotExist:
-        bin = create_bin(histo.id, error, quantity=0, start_date=date, end_date=date)
+        bin = create_bin(histo, error, quantity=0, start_date=date, end_date=date)
     # Need to add checking whether date is already covered....
     bin.quantity += 1
     bin.end_date = date
     bin.save()
-    
+
     
 def display_histogram(source, location, type, day_in_advance):
     """Histogram display."""
@@ -87,7 +88,27 @@ def display_histogram(source, location, type, day_in_advance):
             type=type
         )
     except models.ErrorHistogram.DoesNotExist:
-        print('Such histogram does not exist.')
-    else:
-        for bin in histo.errorbin_set.all():
-            print('error: {}, count: {}'.format(bin.error, bin.quantity))
+        print('Such histogram does not exist.  Making it...')
+        display_error_vs_date(source, location, type, day_in_advance)
+        histo = models.ErrorHistogram.objects.get(
+            location=location,
+            day_in_advance=day_in_advance,
+            source=source,
+            type=type
+        )
+    error_to_qty = histo.errorbin_set.all()
+    min_error = error_to_qty.aggregate(Min('error'))['error__min']
+    max_error = error_to_qty.aggregate(Max('error'))['error__max']
+    for i in range(min_error, max_error+1):
+        try:
+            qty = error_to_qty.get(error=i).quantity
+        except models.ErrorBin.DoesNotExist:
+            qty = 0
+        print('{}: {}'.format(i, '*'*qty))
+
+
+def main():
+    display_histogram('html', 'PDX', 'max', 2)
+
+if __name__ == '__main__':
+    main()

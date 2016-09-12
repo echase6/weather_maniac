@@ -208,7 +208,9 @@ def _get_actual(date, location, max_temp, min_temp):
 
 
 def _qualify_act_fields(date, location, max_temp, min_temp):
+
     """Field qualifiers, prior to saving record."""
+    # print('got here {}, {}, {} {}'.format(date, location, max_temp, min_temp))
     if not _qualify_date(date):
         raise ValueError('Date not as expected.  Got {}'.format(date))
     if location not in models.LOCATIONS.values():
@@ -223,15 +225,20 @@ def _process_csv_row(row, max_temp_index, min_temp_index):
     """Convert the csv rows into saved model records."""
     date = datetime.strptime(row[2], '%Y%m%d')
     location = models.LOCATIONS[row[1]]
-    max_temp = row[max_temp_index]
-    min_temp = row[min_temp_index]
-    act_temp_model = _get_actual(date, location, max_temp, min_temp)
-    act_temp_model.save()
+    max_temp = int(row[max_temp_index])
+    min_temp = int(row[min_temp_index])
+    try:
+        act_temp_model = _get_actual(date, location, max_temp, min_temp)
+    except ValueError as error:
+        print(error)
+    else:
+        act_temp_model.save()
 
 
 def process_actual_file(filename):
     """Main function to extract actual temperatures from the .csv file and
        save the contents in an ActualDayRecord.
+    TMAX/TMIN column parameterized in case the .csv file changes format.
     """
     with open(filename, newline='') as csvfile:
         csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
