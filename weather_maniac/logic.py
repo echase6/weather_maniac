@@ -189,61 +189,57 @@ def process_json_file(file_name):
     process_days_to_max_min(days_to_max_min, predict_date, 'api')
 
 
-def _get_actual(date, location, max_min_type):
+def _get_actual(date, location, max_temp, min_temp):
     """Get the actual point, creating a new one if needed."""
-    _qualify_act_fields(date, max_min_type)
+    _qualify_act_fields(date, location, max_temp, min_temp)
     try:
         act = models.ActualDayRecord.objects.get(
             date_meas=date,
             location=location,
-            type=max_min_type
         )
     except models.ActualDayRecord.DoesNotExist:
         act = models.ActualDayRecord(
-        date_meas=date,
-        location=location,
-        type=max_min_type
+            date_meas=date,
+            location=location,
+            max_temp=max_temp,
+            min_temp=min_temp
     )
     return act
 
 
-def _qualify_act_fields(date, type):
+def _qualify_act_fields(date, location, max_temp, min_temp):
     """Field qualifiers, prior to saving record."""
     if not _qualify_date(date):
         raise ValueError('Date not as expected.  Got {}'.format(date))
-    if type not in models.TYPES:
-        raise ValueError('Type not as expected.  Got {}'.format(type))
+    if location not in models.LOCATIONS.values():
+        raise ValueError('Source not correct.  Got {}'.format(source))
+    if max_temp < -99 or max_temp > 199:
+        raise ValueError('Max temp not correct.  Got {}'.format(str(max_temp)))
+    if min_temp < -99 or min_temp > 199:
+        raise ValueError('Min temp not correct.  Got {}'.format(str(min_temp)))
 
 
-def _process_csv_row(row, locations, max_min_type):
+def _process_csv_row(row, max_temp_index, min_temp_index):
     """Convert the csv rows into saved model records."""
-    date = datetime.strptime(row[0], '%Y%m%d')
-    for i, location in enumerate(locations):
-        if row[i+1].isnumeric():
-            if max_min_type in models.TYPES:
-                act_temp_model = _get_actual(date, location, max_min_type)
-                act_temp_model.temp = int(row[i+1])
-        act_temp_model.save()
+    date = datetime.strptime(row[2], '%Y%m%d')
+    location = models.LOCATIONS[row[1]]
+    max_temp = row[max_temp_index]
+    min_temp = row[min_temp_index]
+    act_temp_model = _get_actual(date, location, max_temp, min_temp)
+    act_temp_model.save()
 
 
 def process_actual_file(filename):
-    """Iterate through the csv file, acting appropriately for each row.
-
-    Main function to extract actual temperatures from the .csv file and
+    """Main function to extract actual temperatures from the .csv file and
        save the contents in an ActualDayRecord.
-
-    There are two files, one holding max temps and another holding in temps.
-       Whether it is max or min is encoded in the filename.
-    The first row of the csv file should hold the locations.
     """
-    max_min_type = filename[-7:-4]
-    locations = []
     with open(filename, newline='') as csvfile:
         csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        header_row = next(csv_reader)
+        max_temp_index = header_row.index('TMAX')
+        min_temp_index = header_row.index('TMIN')
         for row in csv_reader:
             print(row)
-            if row[0] == 'Date':
-                locations = row[1:]
-            else:
-                _process_csv_row(row, locations, max_min_type)
+            if row[1] in models.LOCATIONS:
+                _process_csv_row(row, max_temp_index, min_temp_index)
 
