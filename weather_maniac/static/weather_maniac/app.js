@@ -31,7 +31,7 @@ function addAxesAndLegend (svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
       .attr('y', 6)
       .attr('dy', '.71em')
       .style('text-anchor', 'end')
-      .text('Time (s)');
+      .text('Degrees (F)');
 
   var legend = svg.append('g')
     .attr('class', 'legend')
@@ -221,37 +221,43 @@ function makeChart (data, markers) {
 }
 
 var parseDate  = d3.time.format('%Y-%m-%d').parse;
-d3.json(data_json, function (error, rawData) {
-  if (error) {
-    console.error(error);
-    return;
-  }
 
-  var data = rawData.map(function (d) {
-    return {
-      date:  parseDate(d.date),
-      pct05: d.pct05 / 1000,
-      pct25: d.pct25 / 1000,
-      pct50: d.pct50 / 1000,
-      pct75: d.pct75 / 1000,
-      pct95: d.pct95 / 1000
-    };
-  });
+function display_graph(data_json) {
+  console.dir(data_json);
 
-  d3.json(marker_json, function (error, markerData) {
-    if (error) {
-      console.error(error);
-      return;
-    }
+  // d3.json(data_json, function (error, rawData) {
+  //   if (error) {
+  //     console.error(error);
+  //     return;
+  //   }
 
-    var markers = markerData.map(function (marker) {
+    var data = data_json.map(function (d) {
       return {
-        date: parseDate(marker.date),
-        type: marker.type,
-        version: marker.version
+        date:  parseDate(d.date),
+        pct05: d.pct05 / 1000,
+        pct25: d.pct25 / 1000,
+        pct50: d.pct50 / 1000,
+        pct75: d.pct75 / 1000,
+        pct95: d.pct95 / 1000
       };
     });
 
-    makeChart(data, markers);
-  });
-});
+    // d3.json(marker_json, function (error, markerData) {
+    //   if (error) {
+    //     console.error(error);
+    //     return;
+    //   }
+    //
+    //   var markers = markerData.map(function (marker) {
+    //     return {
+    //       date: parseDate(marker.date),
+    //       type: marker.type,
+    //       version: marker.version
+    //     };
+    //   });
+    //
+    //   makeChart(data, []);
+    // });
+    makeChart(data, []);
+  // });
+}

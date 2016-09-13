@@ -2,6 +2,7 @@
 
 from . import models
 from django.db.models import Max, Min
+import datetime
 
 
 def display_error_vs_date(source, location, type, day_in_advance):
@@ -105,6 +106,25 @@ def display_histogram(source, location, type, day_in_advance):
         except models.ErrorBin.DoesNotExist:
             qty = 0
         print('{}: {}'.format(i, '*'*qty))
+
+
+def return_json_of_forecast():
+    """   """
+    forecast = {0:83, 1:80, 2:84, 3:79, 4:82, 5:84, 6:85}
+    means = {0:0, 1:0.2, 2:0.3, 3:0.4, 4:0.5, 5:0.5, 6:0.5}
+    stds = {0:1, 1:1, 2:2, 3:2, 4:3, 5:3, 6:4}
+    start_date = datetime.datetime.now()
+    json = []
+    for delta_date in range(7):
+        json.append({
+            'date': str(start_date + datetime.timedelta(delta_date))[:10],
+            'pct05': forecast[delta_date] + means[delta_date] - 1.96 * stds[delta_date],
+            'pct25': forecast[delta_date] + means[delta_date] - 0.674 * stds[delta_date],
+            'pct50': forecast[delta_date] + means[delta_date],
+            'pct75': forecast[delta_date] + means[delta_date] + 0.674 * stds[delta_date],
+            'pct95': forecast[delta_date] + means[delta_date] + 1.96 * stds[delta_date]
+        })
+    return json
 
 
 def main():

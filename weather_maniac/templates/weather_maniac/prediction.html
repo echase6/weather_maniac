@@ -22,9 +22,22 @@
         </li>
       </ul>
     </nav>
-    <script>var data_json = "{% static 'weather_maniac/data.json' %}"</script>
-    <script>var marker_json = "{% static 'weather_maniac/markers.json' %}"</script>
+    <form action="{% url 'json' %}" method="get">
+      {% csrf_token %}
+      <label>Select the weather forcaster you want<br>
+      <input type="radio" name="forecaster" value="html"> HTML<br>
+      <input type="radio" name="forecaster" value="api"> API<br>
+      <input type="radio" name="forecaster" value="both"> Both<br>
+      <!-- <input type="text" name="forecaster"> -->
+    </label><br>
+
+      <button type="submit">Go...</button>
+    </form>
+    <!-- <script>var data_json = "{% static 'weather_maniac/data.json' %}"</script> -->
+    <!-- <script>var marker_json = "{% static 'weather_maniac/markers.json' %}"</script> -->
+    <script src="https://code.jquery.com/jquery-2.2.3.js"></script>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="{% static 'weather_maniac/app.js' %}"></script>
+    <script src="{% static 'weather_maniac/prediction.js' %}"></script>
   </body>
 </html>
