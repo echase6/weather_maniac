@@ -192,15 +192,21 @@ function makeChart (data, markers) {
       chartWidth  = svgWidth  - margin.left - margin.right,
       chartHeight = svgHeight - margin.top  - margin.bottom;
 
+
+  var y_min = d3.min(data, function (d) { return d.pct05; }),
+      y_max = d3.max(data, function (d) { return d.pct95; })
   var x = d3.time.scale().range([0, chartWidth])
             .domain(d3.extent(data, function (d) { return d.date; })),
       y = d3.scale.linear().range([chartHeight, 0])
-            .domain([0, d3.max(data, function (d) { return d.pct95; })]);
+            .domain([y_min, y_max]);
 
   var xAxis = d3.svg.axis().scale(x).orient('bottom')
-                .innerTickSize(-chartHeight).outerTickSize(0).tickPadding(10),
+                .innerTickSize(-chartHeight).outerTickSize(0).tickPadding(10).ticks(d3.time.days, 1),
       yAxis = d3.svg.axis().scale(y).orient('left')
                 .innerTickSize(-chartWidth).outerTickSize(0).tickPadding(10);
+
+
+  if ($('svg').length) { $('svg').remove() }
 
   var svg = d3.select('body').append('svg')
     .attr('width',  svgWidth)
@@ -234,11 +240,11 @@ function display_graph(data_json) {
     var data = data_json.map(function (d) {
       return {
         date:  parseDate(d.date),
-        pct05: d.pct05 / 1000,
-        pct25: d.pct25 / 1000,
-        pct50: d.pct50 / 1000,
-        pct75: d.pct75 / 1000,
-        pct95: d.pct95 / 1000
+        pct05: d.pct05,
+        pct25: d.pct25,
+        pct50: d.pct50,
+        pct75: d.pct75,
+        pct95: d.pct95
       };
     });
 

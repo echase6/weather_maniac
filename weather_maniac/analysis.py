@@ -3,6 +3,7 @@
 from . import models
 from django.db.models import Max, Min
 import datetime
+from statistics import mean, stdev
 
 
 def display_error_vs_date(source, location, type, day_in_advance):
@@ -108,14 +109,64 @@ def display_histogram(source, location, type, day_in_advance):
         print('{}: {}'.format(i, '*'*qty))
 
 
-def return_json_of_forecast():
+def get_forecast(source):
+    """Get the current temperature forecast."""
+    return {0:80, 1:80, 2:80, 3:80, 4:80, 5:80, 6:80}
+
+
+def get_statistics_per_day(source, day_in_advance, type):
+    """Get the statistics for a particular source."""
+    actuals = models.ActualDayRecord.objects.filter(location='PDX')
+    error_list = []
+    for act_record in actuals:
+        date = act_record.date_meas
+        try:
+            forecast = models.DayRecord.objects.get(
+                date_reference=date,
+                source=source,
+                day_in_advance=day_in_advance,
+            )
+        except models.DayRecord.DoesNotExist:
+            print('no matching record for {}, {}, {}'.format(date, source, day_in_advance))
+        else:
+            if type == 'max':
+                fcst = forecast.max_temp
+                meas = act_record.max_temp
+            else:
+                fcst = forecast.min_temp
+                meas = act_record.min_temp
+            error_list += [fcst - meas]
+    return mean(error_list), stdev(error_list)
+
+
+def get_statistics(source):
+    """  """
+    means = {}
+    stds = {}
+    type = 'max'
+    if source == 'html':
+        max_day = 7
+    if source == 'api':
+        max_day = 5
+    for day in range(max_day):
+        means[day], stds[day] = get_statistics_per_day(source, day, type)
+    return means, stds
+
+
+def return_json_of_forecast(source):
     """   """
-    forecast = {0:83, 1:80, 2:84, 3:79, 4:82, 5:84, 6:85}
-    means = {0:0, 1:0.2, 2:0.3, 3:0.4, 4:0.5, 5:0.5, 6:0.5}
-    stds = {0:1, 1:1, 2:2, 3:2, 4:3, 5:3, 6:4}
+    forecast = get_forecast(source)
+    means, stds = get_statistics(source)
+    # forecast = {0:80, 1:80, 2:84, 3:79, 4:82, 5:84, 6:85}
+    # means = {0:0, 1:0.2, 2:0.3, 3:0.4, 4:0.5, 5:0.5, 6:0.5}
+    # stds = {0:1, 1:1, 2:2, 3:2, 4:3, 5:3, 6:4}
     start_date = datetime.datetime.now()
     json = []
-    for delta_date in range(7):
+    if source == 'html':
+        max_day = 7
+    if source == 'api':
+        max_day = 5
+    for delta_date in range(max_day):
         json.append({
             'date': str(start_date + datetime.timedelta(delta_date))[:10],
             'pct05': forecast[delta_date] + means[delta_date] - 1.96 * stds[delta_date],
