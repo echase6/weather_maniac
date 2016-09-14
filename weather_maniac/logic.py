@@ -203,14 +203,12 @@ def _get_actual(date, location, max_temp, min_temp):
             location=location,
             max_temp=max_temp,
             min_temp=min_temp
-    )
+        )
     return act
 
 
 def _qualify_act_fields(date, location, max_temp, min_temp):
-
     """Field qualifiers, prior to saving record."""
-    # print('got here {}, {}, {} {}'.format(date, location, max_temp, min_temp))
     if not _qualify_date(date):
         raise ValueError('Date not as expected.  Got {}'.format(date))
     if location not in models.LOCATIONS.values():
