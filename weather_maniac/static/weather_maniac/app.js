@@ -1,20 +1,20 @@
 'use strict';
 
 function addAxesAndLegend (svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
-  var legendWidth  = 200,
-      legendHeight = 100;
+  var legendWidth  = 100,
+      legendHeight = 240;
 
   // clipping to make sure nothing appears behind legend
-  svg.append('clipPath')
-    .attr('id', 'axes-clip')
-    .append('polygon')
-      .attr('points', (-margin.left)                 + ',' + (-margin.top)                 + ' ' +
-                      (chartWidth - legendWidth - 1) + ',' + (-margin.top)                 + ' ' +
-                      (chartWidth - legendWidth - 1) + ',' + legendHeight                  + ' ' +
-                      (chartWidth + margin.right)    + ',' + legendHeight                  + ' ' +
-                      (chartWidth + margin.right)    + ',' + (chartHeight + margin.bottom) + ' ' +
-                      (-margin.left)                 + ',' + (chartHeight + margin.bottom));
-
+  // svg.append('clipPath')
+  //   .attr('id', 'axes-clip')
+  //   .append('polygon')
+  //     .attr('points', (-margin.left)                 + ',' + (-margin.top)                 + ' ' +
+  //                     (chartWidth - legendWidth - 1) + ',' + (-margin.top)                 + ' ' +
+  //                     (chartWidth - legendWidth - 1) + ',' + legendHeight                  + ' ' +
+  //                     (chartWidth + margin.right)    + ',' + legendHeight                  + ' ' +
+  //                     (chartWidth + margin.right)    + ',' + (chartHeight + margin.bottom) + ' ' +
+  //                     (-margin.left)                 + ',' + (chartHeight + margin.bottom));
+  //
   var axes = svg.append('g')
     .attr('clip-path', 'url(#axes-clip)');
 
@@ -35,7 +35,7 @@ function addAxesAndLegend (svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
 
   var legend = svg.append('g')
     .attr('class', 'legend')
-    .attr('transform', 'translate(' + (chartWidth - legendWidth) + ', 0)');
+    .attr('transform', 'translate(' + (chartWidth + 40) + ', 100)');
 
   legend.append('rect')
     .attr('class', 'legend-bg')
@@ -44,35 +44,35 @@ function addAxesAndLegend (svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
 
   legend.append('rect')
     .attr('class', 'outer')
-    .attr('width',  75)
-    .attr('height', 20)
-    .attr('x', 10)
-    .attr('y', 10);
-
-  legend.append('text')
-    .attr('x', 115)
-    .attr('y', 25)
-    .text('5% - 95%');
-
-  legend.append('rect')
-    .attr('class', 'inner')
-    .attr('width',  75)
+    .attr('width',  80)
     .attr('height', 20)
     .attr('x', 10)
     .attr('y', 40);
 
   legend.append('text')
-    .attr('x', 115)
-    .attr('y', 55)
+    .attr('x', 15)
+    .attr('y', 25)
+    .text('5% - 95%');
+
+  legend.append('rect')
+    .attr('class', 'inner')
+    .attr('width',  80)
+    .attr('height', 20)
+    .attr('x', 10)
+    .attr('y', 120);
+
+  legend.append('text')
+    .attr('x', 15)
+    .attr('y', 105)
     .text('25% - 75%');
 
   legend.append('path')
     .attr('class', 'median-line')
-    .attr('d', 'M10,80L85,80');
+    .attr('d', 'M10,210L90,210');
 
   legend.append('text')
-    .attr('x', 115)
-    .attr('y', 85)
+    .attr('x', 15)
+    .attr('y', 185)
     .text('Median');
 }
 
@@ -175,7 +175,7 @@ function addMarker (marker, svg, chartHeight, x) {
 
 function startTransitions (svg, chartWidth, chartHeight, rectClip, markers, x) {
   rectClip.transition()
-    .duration(1000*markers.length)
+    .duration(2000)
     .attr('width', chartWidth);
 
   markers.forEach(function (marker, i) {
@@ -188,13 +188,18 @@ function startTransitions (svg, chartWidth, chartHeight, rectClip, markers, x) {
 function makeChart (data, markers) {
   var svgWidth  = 960,
       svgHeight = 500,
-      margin = { top: 20, right: 20, bottom: 40, left: 40 },
+      margin = { top: 20, right: 140, bottom: 40, left: 40 },
       chartWidth  = svgWidth  - margin.left - margin.right,
       chartHeight = svgHeight - margin.top  - margin.bottom;
 
 
   var y_min = d3.min(data, function (d) { return d.pct05; }),
       y_max = d3.max(data, function (d) { return d.pct95; })
+
+  var y_cent = (y_min + y_max) / 2;
+  y_min = y_cent - 2 * (y_cent - y_min);
+  y_max = y_cent + 2 * (y_max - y_cent);
+
   var x = d3.time.scale().range([0, chartWidth])
             .domain(d3.extent(data, function (d) { return d.date; })),
       y = d3.scale.linear().range([chartHeight, 0])
@@ -229,7 +234,9 @@ function makeChart (data, markers) {
 var parseDate  = d3.time.format('%Y-%m-%d').parse;
 
 function display_graph(data_json) {
-  console.dir(data_json);
+  // console.dir(data_json);
+  $('html,body').css( 'cursor', 'default' );
+
 
   // d3.json(data_json, function (error, rawData) {
   //   if (error) {

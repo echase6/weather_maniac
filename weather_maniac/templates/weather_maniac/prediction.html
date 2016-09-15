@@ -7,6 +7,7 @@
     <link rel="stylesheet" type="text/css"
           href="https://fonts.googleapis.com/css?family=Questrial">
     <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/site.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/prediction.css' %}">
     <link rel="stylesheet" href="{% static 'weather_maniac/app.css' %}">
   </head>
   <body>
@@ -18,19 +19,24 @@
     <nav>
       <ul>
         <li><a href="{% url 'index' %}">Go to the Index page.</a></li>
-        <li><a href="{% url 'prediction' %}">Get a 7-day temperature prediction.</a>
+        <li><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
         </li>
       </ul>
     </nav>
     <form action="{% url 'json' %}" method="get">
       {% csrf_token %}
-      <label>Select the weather forcaster you want<br>
-      <input type="radio" name="forecaster" value="html"> HTML<br>
-      <input type="radio" name="forecaster" value="api"> API<br>
-      <input type="radio" name="forecaster" value="both"> Both<br>
-      <!-- <input type="text" name="forecaster"> -->
+      <div id="fcst">
+        <label>Select the weather forcaster you want</label><br>
+        <input type="radio" name="forecaster" value="html"> HTML<br>
+        <input type="radio" name="forecaster" value="api"> API<br>
+        <input type="radio" name="forecaster" value="both"> Both<br>
+      </div>
+      <div id="type">
+        <label>Select daily high or low temp</label><br>
+        <input type="radio" name="type" value="min"> Low<br>
+        <input type="radio" name="type" value="max"> High<br>
+      </div>
     </label><br>
-
       <button type="submit">Go...</button>
     </form>
     <!-- <script>var data_json = "{% static 'weather_maniac/data.json' %}"</script> -->

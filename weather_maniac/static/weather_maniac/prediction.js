@@ -5,6 +5,7 @@ var sourceForm = $('form');
 
 function runQuery(event) {
   event.preventDefault();
+  $('html,body').css( 'cursor', 'wait' );
   var actionURL = sourceForm.attr('action');
   var submitMethod = sourceForm.attr('method');
   var formData = sourceForm.serialize();
@@ -15,26 +16,6 @@ function runQuery(event) {
     data: formData
   })).then(display_graph);
 }
-
-// function display_results(json) {
-//     var search_text = [
-//       'Search: ',
-//       json.word,
-//       ', count: ',
-//       json.word_count,
-//       ', freq: ',
-//       json.word_freq * 100,
-//       '%'
-//   ].join('')
-//
-//   var item = $('<li>').text(search_text).on(
-//     'dblclick',
-//     function(event) {
-//       $(event.currentTarget).remove();
-//     }
-//   );
-//   $('ul').append(item);
-// }
 
 
 function registerEventHandlers() {

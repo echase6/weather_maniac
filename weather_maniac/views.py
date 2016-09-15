@@ -30,6 +30,8 @@ def render_graph(request):
 
 def return_json(request):
     """Return the JSON data for a forecast."""
-    forecast_source = request.GET.get('forecaster')
-    json_data = analysis.return_json_of_forecast(forecast_source)
+    fcst_source = request.GET.get('forecaster')
+    fcst_type = request.GET.get('type')
+    # fcst_location = request.GET.get('location')
+    json_data = analysis.return_json_of_forecast(fcst_source, fcst_type)
     return JsonResponse(json_data, safe=False)
