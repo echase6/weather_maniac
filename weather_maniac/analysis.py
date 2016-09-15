@@ -7,7 +7,8 @@ from . import file_processor
 from django.db.models import Max, Min
 import datetime
 import math
-from statistics import mean, stdev
+
+SOURCE_TO_LENGTH = {'html': 7, 'api': 5}
 
 
 def create_histogram(source, location, type, day_in_advance):
@@ -90,7 +91,7 @@ def populate_histogram(source, location, type, day_in_advance):
                 day_in_advance=day_in_advance,
             )
         except models.DayRecord.DoesNotExist:
-            print('no forecast matching actual record for {}'.format(date))
+            print('No forecast matching actual record for {}'.format(date))
             continue
         if type == 'max':
             error = forecast.max_temp - act_record.max_temp
@@ -98,6 +99,30 @@ def populate_histogram(source, location, type, day_in_advance):
             error = forecast.min_temp - act_record.min_temp
         update_histogram(histo, error, date)
     return histo
+
+
+def is_histogram_stale(source, location, type, day_in_advance):
+    """Check whether data is waiting to be populated in histogram."""
+    try:
+        histo = models.ErrorHistogram.objects.get(
+            location=location,
+            day_in_advance=day_in_advance,
+            source=source,
+            type=type
+        )
+    except models.ErrorHistogram.DoesNotExist:
+        return True
+    bins = histo.errorbin_set.all()
+    latest_bin_date = bins.aggregate(Max('end_date'))['end_date__max']
+    next_bin_date = latest_bin_date + datetime.timedelta(1)
+    return ((len(models.DayRecord.objects.filter(
+                date_reference=next_bin_date,
+                day_in_advance=day_in_advance,
+                source=source
+            )) == 0) or
+           (len(models.ActualDayRecord.objects.filter(
+                date_meas=next_bin_date
+            )) == 0))
 
 
 def display_histogram(source, location, type, day_in_advance):
@@ -110,26 +135,25 @@ def display_histogram(source, location, type, day_in_advance):
             type=type
         )
     except models.ErrorHistogram.DoesNotExist:
-        print('Such histogram does not exist.  Making it...')
-        # max_error = error_to_qty.aggregate(Max('error'))['error__max']
-
-    histo = populate_histogram(source, location, type, day_in_advance)
+        print('Such histogram does not exist.')
+        return
     error_to_qty = histo.errorbin_set.all()
     min_error = error_to_qty.aggregate(Min('error'))['error__min']
     max_error = error_to_qty.aggregate(Max('error'))['error__max']
+    print('==== Histogram for {} ===='.format(day_in_advance))
     for i in range(min_error, max_error+1):
         try:
             qty = error_to_qty.get(error=i).quantity
         except models.ErrorBin.DoesNotExist:
             qty = 0
         print('{}: {}'.format(i, '*'*qty))
+    print('\n\n')
 
 
-def get_forecast(source, type):
-    """Get the current temperature forecast."""
-    today = utilities.round_down_day(datetime.datetime.now())
+def load_forecast_record(source, today):
+    """Ensure that the forecast record is current."""
     try:
-        today_record = models.DayRecord.objects.get(
+        models.DayRecord.objects.get(
             source=source,
             date_reference=today,
             day_in_advance=0
@@ -138,22 +162,25 @@ def get_forecast(source, type):
         getData.get_data()
         file_processor.process_html_files()
         file_processor.process_api_files()
-    # records = models.DayRecord.objects.filter(
-    #         source=source,
-    #         date_reference=today
-    #     )
+
+
+def get_forecast(source, type):
+    """Get the current temperature forecast."""
+    today = utilities.round_down_day(datetime.datetime.now())
+    load_forecast_record(source, today)
     records = []
-    for day in range(5):
+    for day in range(SOURCE_TO_LENGTH[source]):
         records += [models.DayRecord.objects.get(
             source=source,
             day_in_advance=day,
             date_reference=today + datetime.timedelta(day)
         )]
-    if type == 'min':
-        days_to_temp ={record.day_in_advance: record.max_temp for record in records}
+    if type == 'max':
+        days_to_temp ={record.day_in_advance: record.max_temp
+                       for record in records}
     else:
-        days_to_temp ={record.day_in_advance: record.min_temp for record in records}
-    # days_to_temp = {0:83, 1:81, 2:80, 3:84, 4:81, 5:73, 6:74}
+        days_to_temp ={record.day_in_advance: record.min_temp
+                       for record in records}
     return days_to_temp
 
 
@@ -178,44 +205,30 @@ def get_statistics(source, location, type):
     """  """
     means = {}
     stds = {}
-    if source == 'html':
-        max_day = 7
-    if source == 'api':
-        max_day = 5
-
-    for day in range(max_day):
-        display_histogram(source, location, type, day)
+    for day in range(SOURCE_TO_LENGTH[source]):
+        if is_histogram_stale(source, location, type, day):
+            populate_histogram(source, location, type, day)
         bins = get_all_bins(source, location, type, day)
         means[day], stds[day] = get_statistics_per_day(bins)
     return means, stds
 
 
-def return_json_of_forecast(source):
+def return_json_of_forecast(source, type):
     """   """
-    type = 'max'
     location = 'PDX'
-
     forecast = get_forecast(source, type)
     means, stds = get_statistics(source, location, type)
-    print(means)
-    print(stds)
-    print(str(forecast))
     start_date = utilities.round_down_day(datetime.datetime.now())
-    print(start_date)
     json = []
-    if source == 'html':
-        max_day = 7
-    if source == 'api':
-        max_day = 5
-    for delta_date in range(max_day):
-        if delta_date in forecast:
+    for ddate in range(SOURCE_TO_LENGTH[source]):
+        if ddate in forecast:
             json.append({
-                'date': str(start_date + datetime.timedelta(delta_date))[:10],
-                'pct05': forecast[delta_date] - means[delta_date] - 1.96 * stds[delta_date],
-                'pct25': forecast[delta_date] - means[delta_date] - 0.674 * stds[delta_date],
-                'pct50': forecast[delta_date] - means[delta_date],
-                'pct75': forecast[delta_date] - means[delta_date] + 0.674 * stds[delta_date],
-                'pct95': forecast[delta_date] - means[delta_date] + 1.96 * stds[delta_date]
+                'date': str(start_date + datetime.timedelta(ddate))[:10],
+                'pct05': forecast[ddate] - means[ddate] - 1.96 * stds[ddate],
+                'pct25': forecast[ddate] - means[ddate] - 0.674 * stds[ddate],
+                'pct50': forecast[ddate] - means[ddate],
+                'pct75': forecast[ddate] - means[ddate] + 0.674 * stds[ddate],
+                'pct95': forecast[ddate] - means[ddate] + 1.96 * stds[ddate]
             })
     return json
 
