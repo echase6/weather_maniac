@@ -2,13 +2,12 @@
 
 from django.shortcuts import render
 from django.http import JsonResponse
-from . import logic
 from . import analysis
+
 
 def render_index(request):
     """Render the index (landing) page."""
     return render(request, 'weather_maniac/index.html')
-
 
 
 def render_statistics(request):
@@ -16,11 +15,9 @@ def render_statistics(request):
     return render(request, 'weather_maniac/statistics.html')
 
 
-
 def render_prediction(request):
     """Render the prediction page."""
     return render(request, 'weather_maniac/prediction.html')
-
 
 
 def render_graph(request):
