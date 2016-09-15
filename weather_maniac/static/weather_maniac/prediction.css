@@ -1,0 +1,12 @@
+form {
+  display: flex;
+  flex-direction: row;
+}
+
+#fcst {
+  flex: 1;
+}
+
+#type {
+  flex: 1;
+}
