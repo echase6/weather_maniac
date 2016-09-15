@@ -1,12 +1,33 @@
-form {
+
+
+
+
+main > form {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  border-style: solid;
+  border-radius: 5px;
+  border-width: 2px;
+  border-color: #000000;
+  padding: 10px;
+  align-items: baseline;
 }
 
+#graph {
+  width: 1000px;
+  height: 500px;
+  border-style: solid;
+  border-radius: 5px;
+  outline-width: 2px;
+  outline-color: #000000;
+  padding: 10px;
+
+}
+/*
 #fcst {
-  flex: 1;
+  flex: 0 0;
 }
 
 #type {
-  flex: 1;
-}
+  flex: 0 0;
+}*/

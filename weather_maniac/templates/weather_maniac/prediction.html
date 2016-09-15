@@ -12,33 +12,46 @@
   </head>
   <body>
     <header>
-      <div><h1>Weather Maniac</h1>
-        <h2>...adding confidence to temperature forecasts</h2>
+      <div>
+        <h4>Icon</h4>
+      </div>
+      <div>
+      <h1>Weather Maniac</h1>
+      <h2>...adding confidence to temperature forecasts</h2>
+      </div>
+      <div>
+        <h4>Info</h4>
       </div>
   </header>
-    <nav>
-      <ul>
-        <li><a href="{% url 'index' %}">Go to the Index page.</a></li>
-        <li><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
-        </li>
-      </ul>
-    </nav>
+  <nav>
+    <ul>
+      <li><a href="{% url 'index' %}">Go to the Index page.</a></li>
+      <li><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
+    </ul>
+  </nav>
+  <main>
     <form action="{% url 'json' %}" method="get">
       {% csrf_token %}
       <div id="fcst">
-        <label>Select the weather forcaster you want</label><br>
+        <label>Forecaster:</label><br>
         <input type="radio" name="forecaster" value="html"> HTML<br>
         <input type="radio" name="forecaster" value="api"> API<br>
         <input type="radio" name="forecaster" value="both"> Both<br>
-      </div>
+      </div><br /><br />
       <div id="type">
-        <label>Select daily high or low temp</label><br>
+        <label>Temp:</label><br>
         <input type="radio" name="type" value="min"> Low<br>
         <input type="radio" name="type" value="max"> High<br>
-      </div>
-    </label><br>
+      </div><br /><br />
       <button type="submit">Go...</button>
     </form>
+    <div id="graph">
+    </div>
+  </main>
+  <footer>
+    <label><h4>Weather Manaic</h4></label>
+  </footer>
+
     <!-- <script>var data_json = "{% static 'weather_maniac/data.json' %}"</script> -->
     <!-- <script>var marker_json = "{% static 'weather_maniac/markers.json' %}"</script> -->
     <script src="https://code.jquery.com/jquery-2.2.3.js"></script>

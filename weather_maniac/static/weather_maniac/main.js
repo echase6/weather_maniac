@@ -14,7 +14,7 @@ function runQuery(event) {
     method: submitMethod,
     data: formData
   })).then(display_results);
-}
+};
 
 function display_results(json) {
     var search_text = [
@@ -25,7 +25,7 @@ function display_results(json) {
       ', freq: ',
       json.word_freq * 100,
       '%'
-  ].join('')
+  ].join('');
 
   var item = $('<li>').text(search_text).on(
     'dblclick',
@@ -34,11 +34,11 @@ function display_results(json) {
     }
   );
   $('ul').append(item);
-}
+};
 
 
 function registerEventHandlers() {
   sourceForm.on('submit', runQuery);
-}
+};
 
 $(document).ready(registerEventHandlers);

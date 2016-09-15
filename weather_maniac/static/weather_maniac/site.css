@@ -10,31 +10,62 @@ body {
 header {
   background-color: DeepSkyBlue;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  /*flex: 1;*/
+}
+
+header > div:nth-child(2) {
+  flex: 4;
+}
+
+header > div:first-child {
   flex: 1;
 }
 
-h1 {
+header > div:last-child {
+  flex: 1;
+}
+
+header > div > h1 {
   text-align: center;
   color: WhiteSmoke;
   font-size: 48px;
   /*flex: 1;*/
 }
 
-h2 {
+header > div > h2 {
   text-align: center;
   color: WhiteSmoke;
   font-size: 20px;
   /*flex: 1;*/
 }
 
-.body-wrapper {
+header > div > h4 {
+  text-align: center;
+  color: WhiteSmoke;
+  font-size: 20px;
+  /*flex: 1;*/
+}
+
+main {
   flex: 1;
   display: flex;
   flex-direction: row;
 }
 
-.footer-wrapper {
+
+
+footer {
   display: flex;
+  align-items: center;
   flex-direction: row;
+}
+
+footer > label {
+  flex: 1 1 auto;
+}
+
+footer > label > h4 {
+  text-align: center;
 }
