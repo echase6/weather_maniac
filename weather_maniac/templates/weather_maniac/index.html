@@ -6,20 +6,37 @@
     <title>Weather Maniac</title>
     <link rel="stylesheet" type="text/css"
           href="https://fonts.googleapis.com/css?family=Questrial">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/site.css' %}">
+    <!-- <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
   </head>
   <body>
     <header>
-      <div><h1>Weather Maniac</h1>
-        <h2>...adding confidence to temperature forecasts</h2>
+      <div>
+        <img src="{% static 'weather_maniac/thermo.png' %}" style="width:50px;height:50px"></a>
+        <img src="{% static 'weather_maniac/maniac.png' %}" style="width:50px;height:50px"></a>
+      </div>
+      <div>
+      <h1>Weather Maniac</h1>
+      <h2>...adding confidence to temperature forecasts</h2>
+      </div>
+      <div>
+        <h4>Info</h4>
       </div>
   </header>
   <nav>
-    <ul>
+    <ul class="nav nav-pills nav-justified">
+  <li class="active"><a href="{% url 'index' %}">Home</a></li>
+  <li><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
+  <li><a href="{% url 'prediction' %}">Get a 7-day temperature prediction.</a></li>
+</ul>
+    <!-- <ul>
       <li><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
       <li><a href="{% url 'prediction' %}">Get a 7-day temperature prediction.</a></li>
-    </ul>
+    </ul> -->
   </nav>
+  <main>
+    <div>
   <p>
     Follow the links to find out what the temperature will really be, with some
     level of confidence.
@@ -34,5 +51,10 @@
     best option.  Choose between 50% and 99% to get a feel for what to expect,
     understanding that 100% certainty is an impossibility.
   </p>
+</div>
+</main>
+  <footer>
+    <label><h4>Weather Manaic</h4></label>
+  </footer>
   </body>
 </html>
