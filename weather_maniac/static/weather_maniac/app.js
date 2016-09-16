@@ -12,7 +12,8 @@
  */
 function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
   var legendWidth  = 100,
-    legendHeight = 240;
+    legendHeight = 320,
+    radius = 16;
 
   // clipping to make sure nothing appears behind legend
   // svg.append('clipPath')
@@ -52,16 +53,34 @@ function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
     attr('width',  legendWidth).
     attr('height', legendHeight);
 
+  legend.append('text').
+    attr('x', 15).
+    attr('y', 25).
+    text('Forecast');
+
+  legend.append('circle').
+    attr('class', 'marker-bg').
+    attr('cx', 50).
+    attr('cy', 53).
+    attr('r', radius);
+
+  legend.append('text').
+    attr('x', 50).
+    attr('y', 57).
+    attr('text-anchor', 'middle').
+    text('##');
+
   legend.append('rect').
     attr('class', 'outer').
     attr('width',  80).
     attr('height', 20).
     attr('x', 10).
-    attr('y', 40);
+    attr('y', 120);
 
   legend.append('text').
-    attr('x', 15).
-    attr('y', 25).
+    attr('x', 50).
+    attr('y', 105).
+    attr('text-anchor', 'middle').
     text('5% - 95%');
 
   legend.append('rect').
@@ -69,20 +88,22 @@ function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
     attr('width',  80).
     attr('height', 20).
     attr('x', 10).
-    attr('y', 120);
+    attr('y', 200);
 
   legend.append('text').
-    attr('x', 15).
-    attr('y', 105).
+    attr('x', 50).
+    attr('y', 185).
+    attr('text-anchor', 'middle').
     text('25% - 75%');
 
   legend.append('path').
     attr('class', 'median-line').
-    attr('d', 'M10,210L90,210');
+    attr('d', 'M10,290L90,290');
 
   legend.append('text').
-    attr('x', 15).
-    attr('y', 185).
+    attr('x', 50).
+    attr('y', 265).
+    attr('text-anchor', 'middle').
     text('Median');
 }
 
@@ -159,29 +180,32 @@ function drawPaths(svg, data, x, y) {
  * @param {[type]} chartHeight [description]
  * @param {[type]} x           [description]
  */
-function addMarker(marker, svg, chartHeight, x) {
-  var radius = 32,
+function addMarker(marker, svg, chartHeight, x, y) {
+  var radius = 16,
     xPos = x(marker.date) - radius - 3,
-    yPosStart = chartHeight - radius - 3,
-    yPosEnd = (marker.type === 'Client' ? 80 : 160) + radius - 3;
+    // yPosStart = chartHeight - radius - 3,
+    // yPosEnd = (marker.type === 'Client' ? 80 : 160) + radius - 3;
+    yPos = y(marker.value) - radius - 3;
 
   var markerG = svg.append('g').
-    attr('class', 'marker ' +  marker.type.toLowerCase()).
-    attr('transform', 'translate(' + xPos + ', ' + yPosStart + ')').
+    // attr('class', 'marker ' +  marker.type.toLowerCase()).
+    attr('class', 'marker').
+    attr('text-anchor', 'middle').
+    attr('transform', 'translate(' + xPos + ', ' + yPos + ')').
     attr('opacity', 0);
 
   markerG.transition().
     duration(1000).
-    attr('transform', 'translate(' + xPos + ', ' + yPosEnd + ')').
+    attr('transform', 'translate(' + xPos + ', ' + yPos + ')').
     attr('opacity', 1);
 
-  markerG.append('path').
-    attr('d', 'M' + radius + ',' + (chartHeight - yPosStart) + 'L' + radius +
-    ',' + (chartHeight - yPosStart)).
-    transition().
-      duration(1000).
-      attr('d', 'M' + radius + ',' + (chartHeight - yPosEnd) + 'L' + radius +
-      ',' + radius * 2);
+  // markerG.append('path').
+  //   attr('d', 'M' + radius + ',' + (chartHeight - yPosStart) + 'L' + radius +
+  //   ',' + (chartHeight - yPosStart)).
+  //   transition().
+  //     duration(1000).
+  //     attr('d', 'M' + radius + ',' + (chartHeight - yPosEnd) + 'L' + radius +
+  //     ',' + radius * 2);
 
   markerG.append('circle').
     attr('class', 'marker-bg').
@@ -191,13 +215,13 @@ function addMarker(marker, svg, chartHeight, x) {
 
   markerG.append('text').
     attr('x', radius).
-    attr('y', radius * 0.9).
-    text(marker.type);
+    attr('y', 21).
+    text(marker.value);
 
-  markerG.append('text').
-    attr('x', radius).
-    attr('y', radius * 1.5).
-    text(marker.version);
+  // markerG.append('text').
+  //   attr('x', radius).
+  //   attr('y', radius * 1.5).
+  //   text(marker.version);
 }
 
 /**
@@ -209,16 +233,18 @@ function addMarker(marker, svg, chartHeight, x) {
  * @param  {[type]} markers     [description]
  * @param  {[type]} x           [description]
  */
-function startTransitions(svg, chartWidth, chartHeight, rectClip, markers, x) {
-  rectClip.transition().
-    duration(2000).
-    attr('width', chartWidth);
-
+function startTransitions(svg, chartWidth, chartHeight,
+                          rectClip, markers, x, y) {
   markers.forEach(function(marker, i) {
     setTimeout(function() {
-      addMarker(marker, svg, chartHeight, x);
-    }, 1000 + 500 * i);
+      addMarker(marker, svg, chartHeight, x, y);
+    }, 100 + 200 * i);
   });
+
+  rectClip.transition().
+    duration(2000).
+    delay(2000).
+    attr('width', chartWidth);
 }
 
 /**
@@ -273,7 +299,7 @@ function makeChart(data, markers) {
 
   addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight);
   drawPaths(svg, data, x, y);
-  startTransitions(svg, chartWidth, chartHeight, rectClip, markers, x);
+  startTransitions(svg, chartWidth, chartHeight, rectClip, markers, x, y);
 }
 
 var parseDate  = d3.time.format('%Y-%m-%d').parse;
@@ -293,7 +319,6 @@ function displayGraph(dataJson) {
   //     console.error(error);
   //     return;
   //   }
-
   var data = dataJson.map(function(d) {
     return {
       date: parseDate(d.date),
@@ -311,16 +336,15 @@ function displayGraph(dataJson) {
     //     return;
     //   }
     //
-    //   var markers = markerData.map(function (marker) {
-    //     return {
-    //       date: parseDate(marker.date),
-    //       type: marker.type,
-    //       version: marker.version
-    //     };
-    //   });
+  var markers = dataJson.map(function(marker) {
+    return {
+      date: parseDate(marker.date),
+      value: marker.source_raw
+    };
+  });
     //
     //   makeChart(data, []);
     // });
-  makeChart(data, []);
+  makeChart(data, markers);
   // });
 }
