@@ -5,10 +5,10 @@
 main > form {
   display: flex;
   flex-direction: column;
-  border-style: solid;
+  /*border-style: solid;
   border-radius: 5px;
   border-width: 2px;
-  border-color: #000000;
+  border-color: #000000;*/
   padding: 10px;
   align-items: baseline;
 }
@@ -16,10 +16,10 @@ main > form {
 #graph {
   width: 1000px;
   height: 500px;
-  border-style: solid;
+  /*border-style: solid;
   border-radius: 5px;
   outline-width: 2px;
-  outline-color: #000000;
+  outline-color: #000000;*/
   padding: 10px;
 
 }
