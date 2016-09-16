@@ -224,6 +224,7 @@ def return_json_of_forecast(source, type):
         if ddate in forecast:
             json.append({
                 'date': str(start_date + datetime.timedelta(ddate))[:10],
+                'source_raw': forecast[ddate],
                 'pct05': forecast[ddate] - means[ddate] - 1.96 * stds[ddate],
                 'pct25': forecast[ddate] - means[ddate] - 0.674 * stds[ddate],
                 'pct50': forecast[ddate] - means[ddate],
