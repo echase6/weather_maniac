@@ -8,6 +8,8 @@ var sourceForm = $('form');
 function runQuery(event) {
   event.preventDefault();
   $('html,body').css('cursor', 'wait');
+  if ($('svg').length) { $('svg').remove();}
+  $('#graph').prepend($('<img>',{id:'crazy',src:'/static/weather_maniac/crazy.gif', style:"width:300px;height:300px;"}));
   var actionURL = sourceForm.attr('action');
   var submitMethod = sourceForm.attr('method');
   var formData = sourceForm.serialize();

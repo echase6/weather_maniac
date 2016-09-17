@@ -46,7 +46,8 @@ def _qualify_fields(date, day_in_advance, source, max_temp, min_temp):
     if source not in models.SOURCES:
         raise ValueError('Source not correct.  Got {}'.format(source))
     if day_in_advance < 0 or day_in_advance > 7:
-        raise ValueError('Day in advance not correct.  Got {}'.format(day_in_advance))
+        raise ValueError('Day in advance not correct.  Got {}'
+                         .format(day_in_advance))
     if max_temp < -99 or max_temp > 199:
         raise ValueError('Max temp not correct.  Got {}'.format(str(max_temp)))
     if min_temp < -99 or min_temp > 199:
@@ -63,7 +64,8 @@ def _update_forecast(date, day_in_advance, source, max_temp, min_temp):
             source=source
         )
     except models.DayRecord.DoesNotExist:
-        fcst = _create_forecast(date, day_in_advance, source, max_temp, min_temp)
+        fcst = _create_forecast(date, day_in_advance,
+                                source, max_temp, min_temp)
     fcst.max_temp = max(max_temp, fcst.max_temp)
     fcst.min_temp = min(min_temp, fcst.min_temp)
     fcst.save()
@@ -87,12 +89,12 @@ def _get_html_soup(file_name):
     return BeautifulSoup(html_string, 'html.parser')
 
 
-def _get_forecasts_from_html(html_soup):
+def get_forecasts_from_html(html_soup):
     """HTML file content loader."""
     return html_soup.find_all('div', class_='weather-box daily-forecast')
 
 
-def _get_retimed_fcsts_from_html(daily_forecasts, predict_date):
+def get_retimed_fcsts_from_html(daily_forecasts, predict_date):
     """Harvests temperature points from html file.
 
     Returns a dict with keys as day in advance, values as (max_temp, min_temp).
@@ -100,9 +102,10 @@ def _get_retimed_fcsts_from_html(daily_forecasts, predict_date):
     days_to_max_min = {}
     for forecast in daily_forecasts:
         forecast_utc = int(forecast.span['data-time'])
-        max_temp = int(forecast.find('td', class_='high').get_text())
-        min_temp = int(forecast.find('td', class_='low').get_text())
-        days_in_advance = utilities.calc_days_in_adv(predict_date, forecast_utc//1000)
+        max_temp = int(forecast.find('div', class_='wx-high').get_text())
+        min_temp = int(forecast.find('div', class_='wx-low').get_text())
+        days_in_advance = utilities.calc_days_in_adv(predict_date,
+                                                     forecast_utc//1000)
         if days_in_advance >= 0:
             days_to_max_min[days_in_advance] = (max_temp, min_temp)
     return days_to_max_min
@@ -126,14 +129,14 @@ def process_html_file(file_name):
         and save the contents to a DayRecord.
 
     The prediction date comes from when the file was read, and is encoded in
-       the filename.  The html file contains a forecast time, but this is ignored.
+       the filename.  The html file contains a forecast time; this is ignored.
     The date the forecast applies to is normalized to PDT, and max/min temps
        are found for the time from midnight to midnight.
     """
     predict_date = _get_date(file_name[-24:-14])
     html_soup = _get_html_soup(file_name)
-    daily_forecasts = _get_forecasts_from_html(html_soup)
-    days_to_max_min = _get_retimed_fcsts_from_html(daily_forecasts, predict_date)
+    daily_forecasts = get_forecasts_from_html(html_soup)
+    days_to_max_min = get_retimed_fcsts_from_html(daily_forecasts, predict_date)
     process_days_to_max_min(days_to_max_min, predict_date, 'html')
 
 
@@ -247,4 +250,3 @@ def process_actual_file(filename):
             print(row)
             if row[1] in models.LOCATIONS:
                 _process_csv_row(row, max_temp_index, min_temp_index)
-

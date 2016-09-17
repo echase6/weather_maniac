@@ -312,6 +312,7 @@ var parseDate  = d3.time.format('%Y-%m-%d').parse;
  */
 function displayGraph(dataJson) {
   $('html,body').css('cursor', 'default');
+  $('#crazy').remove();
 
 
   // d3.json(dataJson, function (error, rawData) {

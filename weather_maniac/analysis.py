@@ -140,14 +140,17 @@ def display_histogram(source, location, type, day_in_advance):
     error_to_qty = histo.errorbin_set.all()
     min_error = error_to_qty.aggregate(Min('error'))['error__min']
     max_error = error_to_qty.aggregate(Max('error'))['error__max']
+    mean, sd = get_statistics_per_day(error_to_qty)
     print('==== Histogram for {} ===='.format(day_in_advance))
+    count = 0
     for i in range(min_error, max_error+1):
         try:
             qty = error_to_qty.get(error=i).quantity
         except models.ErrorBin.DoesNotExist:
             qty = 0
         print('{}: {}'.format(i, '*'*qty))
-    print('\n\n')
+        count += qty
+    print('\nCount: {}, Mean: {:.3f}, SD: {:.3f}\n\n'.format(count, mean, sd))
 
 
 def load_forecast_record(source, today):
@@ -235,7 +238,7 @@ def return_json_of_forecast(source, type):
 
 
 def main():
-    display_histogram('html', 'PDX', 'max', 2)
+    display_histogram('api', 'PDX', 'max', 2)
 
 if __name__ == '__main__':
     main()
