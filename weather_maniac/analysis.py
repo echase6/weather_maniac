@@ -12,7 +12,11 @@ SOURCE_TO_LENGTH = {'html': 7, 'api': 5}
 
 
 def create_histogram(source, location, type, day_in_advance):
-    """Create Error Histogram."""
+    """Create Error Histogram.
+
+    >>> create_histogram('api', 'PDX', 'max', 2)
+    ErrorHistogram(source='api', type='max', location='PDX', day_in_advance=2)
+    """
     return models.ErrorHistogram(
         source=source,
         location=location,
@@ -22,7 +26,19 @@ def create_histogram(source, location, type, day_in_advance):
 
 
 def create_bin(histo, error, quantity, start_date, end_date):
-    """Create Error Bin."""
+    """Create Error Bin.
+
+    >>> from . import models
+    >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
+    ... day_in_advance=2)
+    >>> create_bin(histo, -1, 10,datetime.datetime(2016, 6, 1, 0, 0),
+    ... datetime.datetime(2016, 8, 1, 0, 0))
+    ...   # doctest: +NORMALIZE_WHITESPACE
+    ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max',
+    location='PDX', day_in_advance=2), error=-1, quantity=10,
+    start_date=datetime.datetime(2016, 6, 1, 0, 0),
+    end_date=datetime.datetime(2016, 8, 1, 0, 0))
+    """
     return models.ErrorBin(
         member_of_hist=histo,
         error=error,
@@ -33,7 +49,18 @@ def create_bin(histo, error, quantity, start_date, end_date):
 
 
 def get_histogram(source, location, type, day_in_advance):
-    """Get the histogram.  Make one if not done yet."""
+    """Get the histogram.  Make one if not done yet.
+
+    >>> from . import models
+    >>> get_histogram('api', 'PDX', 'max', 2)
+    ErrorHistogram(source='api', type='max', location='PDX', day_in_advance=2)
+    >>> get_histogram('api', 'PDX', 'max', 3)
+    ErrorHistogram(source='api', type='max', location='PDX', day_in_advance=3)
+    >>> for histo in models.ErrorHistogram.objects.all():
+    ...   print(str(histo))
+    api, max, PDX, 2
+    api, max, PDX, 3
+    """
     try:
         histo = models.ErrorHistogram.objects.get(
             location=location,
@@ -52,14 +79,32 @@ def get_bin(histo, error, date):
 
     New bin initialized to have quantity=1 since its end date will disqualify
       it from being incremented in the next step.
+
+    >>> from . import models
+    >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
+    ... day_in_advance=2)
+    >>> histo.save()
+    >>> get_bin(histo, 2, datetime.date(2016, 6, 1))
+    ...   # doctest: +NORMALIZE_WHITESPACE
+    ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max',
+    location='PDX', day_in_advance=2), error=2, quantity=1,
+    start_date=datetime.date(2016, 6, 1), end_date=datetime.date(2016, 6, 1))
+    >>> get_bin(histo, 3, datetime.date(2016, 8, 1))
+    ...   # doctest: +NORMALIZE_WHITESPACE
+    ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max',
+    location='PDX', day_in_advance=2), error=3, quantity=1,
+    start_date=datetime.date(2016, 8, 1), end_date=datetime.date(2016, 8, 1))
+    >>> for bin in models.ErrorBin.objects.all():
+    ...   print(str(bin))
+    api, max, PDX, 2, 2, 1, 2016-06-01, 2016-06-01
+    api, max, PDX, 2, 3, 1, 2016-08-01, 2016-08-01
     """
     try:
         bin = histo.errorbin_set.get(
             error=error
         )
     except models.ErrorBin.DoesNotExist:
-        bin = create_bin(histo, error, quantity=1,
-                         start_date=date, end_date=date)
+        bin = create_bin(histo, error, 1, date, date)
         bin.save()
     return bin
 
@@ -70,6 +115,23 @@ def update_histogram(histo, error, date):
     Updating in this sense is:
       increment the count in an appropriate bin by 1
       change the end date to the record date (to avoid double-counting)
+
+    >>> from . import models
+    >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
+    ... day_in_advance=2)
+    >>> histo.save()
+    >>> update_histogram(histo, 1, datetime.date(2016, 8, 1))
+    >>> update_histogram(histo, 1, datetime.date(2016, 8, 2))
+    >>> update_histogram(histo, 1, datetime.date(2016, 7, 1))
+    >>> for bin in models.ErrorBin.objects.all():
+    ...   print(str(bin))
+    api, max, PDX, 2, 1, 2, 2016-08-01, 2016-08-02
+    >>> update_histogram(histo, -1, datetime.date(2016, 7, 1))
+    >>> update_histogram(histo, -1, datetime.date(2016, 8, 2))
+    >>> for bin in models.ErrorBin.objects.all():
+    ...   print(str(bin))
+    api, max, PDX, 2, 1, 2, 2016-08-01, 2016-08-02
+    api, max, PDX, 2, -1, 2, 2016-07-01, 2016-08-02
     """
     bin = get_bin(histo, error, date)
     if bin.end_date < date:
@@ -83,6 +145,24 @@ def populate_histogram(source, location, type, day_in_advance):
 
     Combines data from ActualDayRecords (i.e., measured temperature) and data
        from matching DayRecords (i.e., forecast).
+
+    >>> from . import models
+    >>> models.ActualDayRecord(date_meas=datetime.date(2016, 6, 1),
+    ... location="PDX", max_temp=76, min_temp=55).save()
+    >>> models.DayRecord(date_reference=datetime.date(2016, 6, 1),
+    ... day_in_advance=3, source='api', max_temp=83, min_temp=50).save()
+    >>> populate_histogram('api', 'PDX', 'max', 3)
+    ErrorHistogram(source='api', type='max', location='PDX', day_in_advance=3)
+    >>> populate_histogram('html', 'PDX', 'max', 3)
+    No forecast matching actual record for 2016-06-01
+    ErrorHistogram(source='html', type='max', location='PDX', day_in_advance=3)
+    >>> for histo in models.ErrorHistogram.objects.all():
+    ...   print(str(histo))
+    api, max, PDX, 3
+    html, max, PDX, 3
+    >>> for bin in models.ErrorBin.objects.all():
+    ...   print(str(bin))
+    api, max, PDX, 3, 7, 1, 2016-06-01, 2016-06-01
     """
     actuals = models.ActualDayRecord.objects.filter(location=location)
     histo = get_histogram(source, location, type, day_in_advance)

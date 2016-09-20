@@ -48,7 +48,9 @@ class DayRecord(models.Model):
 
         >>> repr(DayRecord(date_reference=datetime.datetime(2016,6,1),
         ... day_in_advance=3, source='html', max_temp=83, min_temp=50))
-        "DayRecord(date=datetime.datetime(2016, 6, 1, 0, 0), day in advance=3, source='html', max temp=83, min temp=50"
+        ...   # doctest: +NORMALIZE_WHITESPACE
+        "DayRecord(date=datetime.datetime(2016, 6, 1, 0, 0), day in advance=3,
+        source='html', max temp=83, min temp=50"
         """
         return 'DayRecord(date={!r}, day in advance={!r}, source={!r}, ' \
                'max temp={!r}, min temp={!r}'.format(
@@ -90,7 +92,9 @@ class ActualDayRecord(models.Model):
 
         >>> repr(ActualDayRecord(date_meas=datetime.datetime(2016, 6, 1),
         ... location="PDX", max_temp=83, min_temp=50))
-        "ActualDayRecord(date=datetime.datetime(2016, 6, 1, 0, 0), location='PDX', max_temp=83, min_temp=50)"
+        ...   # doctest: +NORMALIZE_WHITESPACE
+        "ActualDayRecord(date=datetime.datetime(2016, 6, 1, 0, 0),
+        location='PDX', max_temp=83, min_temp=50)"
         """
         return 'ActualDayRecord(date={!r}, location={!r}, max_temp={!r}, ' \
                'min_temp={!r})'.format(
@@ -136,7 +140,9 @@ class ErrorHistogram(models.Model):
 
         >>> repr(ErrorHistogram(source='api', type='max', location='PDX',
         ... day_in_advance=2))
-        "ErrorHistogram(source='api', type='max', location='PDX', day_in_advance=2)"
+        ...   # doctest: +NORMALIZE_WHITESPACE
+        "ErrorHistogram(source='api', type='max', location='PDX',
+        day_in_advance=2)"
         """
         return 'ErrorHistogram(source={!r}, type={!r}, location={!r}, ' \
                'day_in_advance={!r})'.format(
@@ -188,7 +194,11 @@ class ErrorBin(models.Model):
         >>> repr(ErrorBin(member_of_hist=histo, error=-1, quantity=10,
         ... start_date=datetime.datetime(2016, 6, 1, 0, 0),
         ... end_date=datetime.datetime(2016, 8, 1, 0, 0)))
-        "ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max', location='PDX', day_in_advance=2), error=-1, quantity=10, start_date=datetime.datetime(2016, 6, 1, 0, 0), end_date=datetime.datetime(2016, 8, 1, 0, 0))"
+        ...  # doctest: +NORMALIZE_WHITESPACE
+        "ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max',
+        location='PDX', day_in_advance=2), error=-1, quantity=10,
+        start_date=datetime.datetime(2016, 6, 1, 0, 0),
+        end_date=datetime.datetime(2016, 8, 1, 0, 0))"
         """
         return 'ErrorBin(member_of_hist={!r}, error={!r}, quantity={!r}, ' \
                'start_date={!r}, end_date={!r})'.format(
