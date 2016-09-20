@@ -1,12 +1,12 @@
 """Weather Maniac Analysis modules."""
 
-from . import models
-from . import utilities
-from . import getData
-from . import file_processor
-from django.db.models import Max, Min
 import datetime
 import math
+from django.db.models import Max, Min
+
+from . import data_loader
+from . import models
+from . import utilities
 
 SOURCE_TO_LENGTH = {'html': 7, 'api': 5}
 
@@ -172,9 +172,8 @@ def load_forecast_record(source, today):
             day_in_advance=0
         )
     except models.DayRecord.DoesNotExist:
-        getData.get_data()
-        file_processor.process_html_files()
-        file_processor.process_api_files()
+        data_loader.update_html_data()
+        data_loader.update_api_data()
 
 
 def get_forecast(source, type):

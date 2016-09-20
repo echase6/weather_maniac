@@ -1,4 +1,4 @@
-test_json = {"city": {"id": 5746545, "name": "Portland",
+test_json = r"""{"city": {"id": 5746545, "name": "Portland",
                       "coord": {"lon": -122.676208, "lat": 45.523449},
                       "country": "US", "population": 0,
                       "sys": {"population": 0}}, "cod": "200",
@@ -761,4 +761,4 @@ test_json = {"city": {"id": 5746545, "name": "Portland",
                                                               "deg": 280},
                                                      "rain": {},
                                                      "sys": {"pod": "n"},
-                                                     "dt_txt": "2016-06-22 00:00:00"}]}
+                                                     "dt_txt": "2016-06-22 00:00:00"}]}"""
