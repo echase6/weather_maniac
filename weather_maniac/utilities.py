@@ -21,3 +21,12 @@ def calc_days_in_adv(predict_date, forecast_utc):
     forcst_date = datetime.fromtimestamp(forecast_utc)
     forcst_date = round_down_day(forcst_date)
     return (forcst_date - predict_date).days
+
+
+def temp_f(temp_k):
+    """Kelvin to Fahrenheit converter.
+
+    >>> temp_f(240)
+    -28
+    """
+    return round(9 * (temp_k - 273.15) / 5 + 32)

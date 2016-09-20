@@ -1,16 +1,13 @@
 """weather_maniac Logic."""
 
-
 from datetime import datetime, timedelta
-import csv
-import json
-from bs4 import BeautifulSoup
-from . import utilities
+
 from . import models
+from . import utilities
 
 
 def _create_forecast(date, day_in_advance, source, max_temp, min_temp):
-    """Create and save Forecast model."""
+    """Create Forecast model."""
     return models.DayRecord(
         date_reference=date,
         day_in_advance=day_in_advance,
@@ -72,26 +69,14 @@ def _update_forecast(date, day_in_advance, source, max_temp, min_temp):
     return fcst
 
 
-def _get_date(date_string):
+def get_date(date_string):
     """Convert date string into date object.
 
-    >>> _get_date('2016_06_01')
+    >>> get_date('2016_06_01')
     datetime.datetime(2016, 6, 1, 0, 0)
     """
     date_format = '%Y_%m_%d'
     return datetime.strptime(date_string, date_format)
-
-
-def _get_html_soup(file_name):
-    """HTML file loader."""
-    with open(file_name) as html_file:
-        html_string = html_file.read()
-    return BeautifulSoup(html_string, 'html.parser')
-
-
-def get_forecasts_from_html(html_soup):
-    """HTML file content loader."""
-    return html_soup.find_all('div', class_='weather-box daily-forecast')
 
 
 def get_retimed_fcsts_from_html(daily_forecasts, predict_date):
@@ -124,39 +109,8 @@ def process_days_to_max_min(days_to_max_min, predict_date, source):
             print(error)
 
 
-def process_html_file(file_name):
-    """Main function to extract max and min temperatures from one HTML file
-        and save the contents to a DayRecord.
 
-    The prediction date comes from when the file was read, and is encoded in
-       the filename.  The html file contains a forecast time; this is ignored.
-    The date the forecast applies to is normalized to PDT, and max/min temps
-       are found for the time from midnight to midnight.
-    """
-    predict_date = _get_date(file_name[-24:-14])
-    html_soup = _get_html_soup(file_name)
-    daily_forecasts = get_forecasts_from_html(html_soup)
-    days_to_max_min = get_retimed_fcsts_from_html(daily_forecasts, predict_date)
-    process_days_to_max_min(days_to_max_min, predict_date, 'html')
-
-
-def temp_f(temp_k):
-    """Kelvin to Fahrenheit converter.
-
-    >>> temp_f(240)
-    -28
-    """
-    return round(9 * (temp_k - 273.15) / 5 + 32)
-
-
-def _get_json(file_name):
-    """JSON file content loader. """
-    with open(file_name) as data_file:
-        json_data = json.load(data_file)
-    return json_data
-
-
-def _get_retimed_fcsts_from_json(json_data, predict_date):
+def get_retimed_fcsts_from_json(json_data, predict_date):
     """Harvests temperature points from json file.
 
     Returns a dict with keys as day in advance, values as (max_temp, min_temp).
@@ -165,7 +119,7 @@ def _get_retimed_fcsts_from_json(json_data, predict_date):
     for row in json_data['list']:
         forecast_utc = row['dt']
         days_in_advance = utilities.calc_days_in_adv(predict_date, forecast_utc)
-        new_temp = int(temp_f(row['main']['temp']))
+        new_temp = int(utilities.temp_f(row['main']['temp']))
         if days_in_advance in date_max_min_temp:
             (max_temp, min_temp) = date_max_min_temp[days_in_advance]
             date_max_min_temp[days_in_advance] = (max([new_temp, max_temp]),
@@ -175,24 +129,7 @@ def _get_retimed_fcsts_from_json(json_data, predict_date):
     return date_max_min_temp
 
 
-def process_json_file(file_name):
-    """Main function to extract max and min temperatures from one API(json) file
-        and save the contents to a DayRecord.
-
-    The file contains temperature predictions every hour (not max/min) so the
-       process is to find the max and min for a given day.
-    The prediction date comes from when the file was read, and is encoded in
-       the filename.  The json file does not contain prediction time.
-    The date the forecast applies to is normalized to PDT, and max/min temps
-       are found for the time from midnight to midnight.
-    """
-    predict_date = _get_date(file_name[-19:-9])
-    json_data = _get_json(file_name)
-    days_to_max_min = _get_retimed_fcsts_from_json(json_data, predict_date)
-    process_days_to_max_min(days_to_max_min, predict_date, 'api')
-
-
-def _get_actual(date, location, max_temp, min_temp):
+def get_actual(date, location, max_temp, min_temp):
     """Get the actual point, creating a new one if needed."""
     _qualify_act_fields(date, location, max_temp, min_temp)
     try:
@@ -220,33 +157,3 @@ def _qualify_act_fields(date, location, max_temp, min_temp):
         raise ValueError('Max temp not correct.  Got {}'.format(str(max_temp)))
     if min_temp < -99 or min_temp > 199:
         raise ValueError('Min temp not correct.  Got {}'.format(str(min_temp)))
-
-
-def _process_csv_row(row, max_temp_index, min_temp_index):
-    """Convert the csv rows into saved model records."""
-    date = datetime.strptime(row[2], '%Y%m%d')
-    location = models.LOCATIONS[row[1]]
-    max_temp = int(row[max_temp_index])
-    min_temp = int(row[min_temp_index])
-    try:
-        act_temp_model = _get_actual(date, location, max_temp, min_temp)
-    except ValueError as error:
-        print(error)
-    else:
-        act_temp_model.save()
-
-
-def process_actual_file(filename):
-    """Main function to extract actual temperatures from the .csv file and
-       save the contents in an ActualDayRecord.
-    TMAX/TMIN column parameterized in case the .csv file changes format.
-    """
-    with open(filename, newline='') as csvfile:
-        csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-        header_row = next(csv_reader)
-        max_temp_index = header_row.index('TMAX')
-        min_temp_index = header_row.index('TMIN')
-        for row in csv_reader:
-            print(row)
-            if row[1] in models.LOCATIONS:
-                _process_csv_row(row, max_temp_index, min_temp_index)

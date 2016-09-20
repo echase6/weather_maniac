@@ -22,7 +22,7 @@ def create_histogram(source, location, type, day_in_advance):
 
 
 def create_bin(histo, error, quantity, start_date, end_date):
-    """Create Error Histogram."""
+    """Create Error Bin."""
     return models.ErrorBin(
         member_of_hist=histo,
         error=error,
@@ -48,7 +48,11 @@ def get_histogram(source, location, type, day_in_advance):
 
 
 def get_bin(histo, error, date):
-    """Get the error bin.  Make one if not done yet."""
+    """Get the error bin.  Make one if not done yet.
+
+    New bin initialized to have quantity=1 since its end date will disqualify
+      it from being incremented in the next step.
+    """
     try:
         bin = histo.errorbin_set.get(
             error=error
@@ -102,7 +106,13 @@ def populate_histogram(source, location, type, day_in_advance):
 
 
 def is_histogram_stale(source, location, type, day_in_advance):
-    """Check whether data is waiting to be populated in histogram."""
+    """Check whether data is waiting to be populated in histogram.
+
+    The logic here is to call the histogram stale if:
+      -- it does not exist, or
+      -- there is a forecast covering the day after the latest bin, and
+      -- there is a measured point covering the day after the latest bin.
+    """
     try:
         histo = models.ErrorHistogram.objects.get(
             location=location,
@@ -119,10 +129,10 @@ def is_histogram_stale(source, location, type, day_in_advance):
                 date_reference=next_bin_date,
                 day_in_advance=day_in_advance,
                 source=source
-            )) == 0) or
-           (len(models.ActualDayRecord.objects.filter(
+            )) > 0) and
+            (len(models.ActualDayRecord.objects.filter(
                 date_meas=next_bin_date
-            )) == 0))
+            )) > 0))
 
 
 def display_histogram(source, location, type, day_in_advance):

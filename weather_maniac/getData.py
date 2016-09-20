@@ -21,9 +21,9 @@ def get_data():
         'http://api.openweathermap.org/data/2.5/forecast/city?' +
         key.app_id_str)
     with urllib.request.urlopen(req) as f:
-        report = f.read()
+        file_contents = f.read()
     with open((file_repo + 'API_Data/' + file_date), 'w') as file:
-        file.write(report.decode('utf-8'))
+        file.write(file_contents.decode('utf-8'))
 
     # JPG source:
     file_name = file_repo + 'ScreenData/screen' + file_date + '.jpg'
