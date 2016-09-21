@@ -6,9 +6,7 @@ from django.db.models import Max, Min
 
 from . import data_loader
 from . import models
-from . import utilities
 
-SOURCE_TO_LENGTH = {'html': 7, 'api': 5}
 
 
 def create_histogram(source, location, type, day_in_advance):
@@ -28,7 +26,6 @@ def create_histogram(source, location, type, day_in_advance):
 def create_bin(histo, error, quantity, start_date, end_date):
     """Create Error Bin.
 
-    >>> from . import models
     >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
     ... day_in_advance=2)
     >>> create_bin(histo, -1, 10,datetime.datetime(2016, 6, 1, 0, 0),
@@ -49,9 +46,8 @@ def create_bin(histo, error, quantity, start_date, end_date):
 
 
 def get_histogram(source, location, type, day_in_advance):
-    """Get the histogram.  Make one if not done yet.
+    """Get the histogram.  Make one if it does not exist.
 
-    >>> from . import models
     >>> get_histogram('api', 'PDX', 'max', 2)
     ErrorHistogram(source='api', type='max', location='PDX', day_in_advance=2)
     >>> get_histogram('api', 'PDX', 'max', 3)
@@ -75,12 +71,11 @@ def get_histogram(source, location, type, day_in_advance):
 
 
 def get_bin(histo, error, date):
-    """Get the error bin.  Make one if not done yet.
+    """Get the error bin.  Make one if it does not exist.
 
     New bin initialized to have quantity=1 since its end date will disqualify
       it from being incremented in the next step.
 
-    >>> from . import models
     >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
     ... day_in_advance=2)
     >>> histo.save()
@@ -113,10 +108,9 @@ def update_histogram(histo, error, date):
     """Update the forecast point, creating a new one if needed.
 
     Updating in this sense is:
-      increment the count in an appropriate bin by 1
-      change the end date to the record date (to avoid double-counting)
+      -- increment the count in an appropriate bin by 1
+      -- change the end date to the record date (to avoid double-counting)
 
-    >>> from . import models
     >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
     ... day_in_advance=2)
     >>> histo.save()
@@ -146,7 +140,6 @@ def populate_histogram(source, location, type, day_in_advance):
     Combines data from ActualDayRecords (i.e., measured temperature) and data
        from matching DayRecords (i.e., forecast).
 
-    >>> from . import models
     >>> models.ActualDayRecord(date_meas=datetime.date(2016, 6, 1),
     ... location="PDX", max_temp=76, min_temp=55).save()
     >>> models.DayRecord(date_reference=datetime.date(2016, 6, 1),
@@ -188,10 +181,29 @@ def populate_histogram(source, location, type, day_in_advance):
 def is_histogram_stale(source, location, type, day_in_advance):
     """Check whether data is waiting to be populated in histogram.
 
-    The logic here is to call the histogram stale if:
+    The logic here is to label the histogram as stale if:
       -- it does not exist, or
       -- there is a forecast covering the day after the latest bin, and
       -- there is a measured point covering the day after the latest bin.
+
+    >>> is_histogram_stale('api', 'PDX', 'max', 2)
+    True
+    >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
+    ... day_in_advance=2)
+    >>> histo.save()
+    >>> models.ErrorBin(member_of_hist=histo, error=-1, quantity=10,
+    ... start_date=datetime.datetime(2016, 6, 1, 0, 0),
+    ... end_date=datetime.datetime(2016, 8, 1, 0, 0)).save()
+    >>> is_histogram_stale('api', 'PDX', 'max', 2)
+    False
+    >>> models.ActualDayRecord(date_meas=datetime.date(2016, 8, 2),
+    ... location="PDX", max_temp=76, min_temp=55).save()
+    >>> is_histogram_stale('api', 'PDX', 'max', 2)
+    False
+    >>> models.DayRecord(date_reference=datetime.date(2016, 8, 2),
+    ... day_in_advance=2, source='api', max_temp=83, min_temp=50).save()
+    >>> is_histogram_stale('api', 'PDX', 'max', 2)
+    True
     """
     try:
         histo = models.ErrorHistogram.objects.get(
@@ -216,7 +228,33 @@ def is_histogram_stale(source, location, type, day_in_advance):
 
 
 def display_histogram(source, location, type, day_in_advance):
-    """Histogram display."""
+    """Histogram display.
+
+    This is for troubleshooting and data study.  Since it displays on the
+      server console it is unused by the web-site.
+
+    >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
+    ... day_in_advance=2)
+    >>> histo.save()
+    >>> models.ErrorBin(member_of_hist=histo, error=1, quantity=3,
+    ... start_date=datetime.date(2016, 6, 1),
+    ... end_date=datetime.date(2016, 8, 1)).save()
+    >>> models.ErrorBin(member_of_hist=histo, error=2, quantity=10,
+    ... start_date=datetime.date(2016, 6, 1),
+    ... end_date=datetime.date(2016, 8, 1)).save()
+    >>> models.ErrorBin(member_of_hist=histo, error=3, quantity=3,
+    ... start_date=datetime.date(2016, 6, 1),
+    ... end_date=datetime.date(2016, 8, 1)).save()
+    >>> display_histogram('api', 'PDX', 'max', 2)
+    ==== Histogram for 2 ====
+    1: ***
+    2: **********
+    3: ***
+    <BLANKLINE>
+    Count: 16, Mean: 2.000, SD: 0.632
+    <BLANKLINE>
+    <BLANKLINE>
+    """
     try:
         histo = models.ErrorHistogram.objects.get(
             location=location,
@@ -243,47 +281,46 @@ def display_histogram(source, location, type, day_in_advance):
     print('\nCount: {}, Mean: {:.3f}, SD: {:.3f}\n\n'.format(count, mean, sd))
 
 
-def load_forecast_record(source, today):
-    """Ensure that the forecast record is current."""
-    try:
-        models.DayRecord.objects.get(
-            source=source,
-            date_reference=today,
-            day_in_advance=0
-        )
-    except models.DayRecord.DoesNotExist:
-        data_loader.update_html_data()
-        data_loader.update_api_data()
-
-
-def get_forecast(source, type):
-    """Get the current temperature forecast."""
-    today = utilities.round_down_day(datetime.datetime.now())
-    load_forecast_record(source, today)
-    records = []
-    for day in range(SOURCE_TO_LENGTH[source]):
-        records += [models.DayRecord.objects.get(
-            source=source,
-            day_in_advance=day,
-            date_reference=today + datetime.timedelta(day)
-        )]
-    if type == 'max':
-        days_to_temp ={record.day_in_advance: record.max_temp
-                       for record in records}
-    else:
-        days_to_temp ={record.day_in_advance: record.min_temp
-                       for record in records}
-    return days_to_temp
-
-
 def get_all_bins(source, location, type, day_in_advance):
-    """Returns all bins for a particular histogram."""
+    """Returns all bins for a particular histogram.
+
+    >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
+    ... day_in_advance=2)
+    >>> histo.save()
+    >>> models.ErrorBin(member_of_hist=histo, error=1, quantity=3,
+    ... start_date=datetime.date(2016, 6, 1),
+    ... end_date=datetime.date(2016, 8, 1)).save()
+    >>> get_all_bins('api', 'PDX', 'max', 2)
+    ...   # doctest: +NORMALIZE_WHITESPACE
+    <QuerySet [ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max',
+    location='PDX', day_in_advance=2), error=1, quantity=3,
+    start_date=datetime.date(2016, 6, 1), end_date=datetime.date(2016, 8, 1))]>
+    """
     histo = get_histogram(source, location, type, day_in_advance)
     return histo.errorbin_set.all()
 
 
 def get_statistics_per_day(bins):
-    """Get the statistics from a collection of bins."""
+    """Get the statistics from a collection of bins.
+
+    >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
+    ... day_in_advance=2)
+    >>> histo.save()
+    >>> get_statistics_per_day([])
+    (0, 0)
+    >>> models.ErrorBin(member_of_hist=histo, error=1, quantity=3,
+    ... start_date=datetime.date(2016, 6, 1),
+    ... end_date=datetime.date(2016, 8, 1)).save()
+    >>> models.ErrorBin(member_of_hist=histo, error=2, quantity=10,
+    ... start_date=datetime.date(2016, 6, 1),
+    ... end_date=datetime.date(2016, 8, 1)).save()
+    >>> models.ErrorBin(member_of_hist=histo, error=3, quantity=3,
+    ... start_date=datetime.date(2016, 6, 1),
+    ... end_date=datetime.date(2016, 8, 1)).save()
+    >>> bins = get_all_bins('api', 'PDX', 'max', 2)
+    >>> get_statistics_per_day(bins)
+    (2.0, 0.6324555320336759)
+    """
     total = sum([bin.quantity for bin in bins])
     if total == 0:    # Avoids a div by zero error; stats are nulled out.
         return 0, 0
@@ -294,10 +331,12 @@ def get_statistics_per_day(bins):
 
 
 def get_statistics(source, location, type):
-    """  """
+    """Main function to collect statistics for application to the forecast
+         points on the web-site.
+    """
     means = {}
     stds = {}
-    for day in range(SOURCE_TO_LENGTH[source]):
+    for day in range(models.SOURCE_TO_LENGTH[source]):
         if is_histogram_stale(source, location, type, day):
             populate_histogram(source, location, type, day)
         bins = get_all_bins(source, location, type, day)
@@ -305,14 +344,30 @@ def get_statistics(source, location, type):
     return means, stds
 
 
-def return_json_of_forecast(source, type):
-    """   """
-    location = 'PDX'
-    forecast = get_forecast(source, type)
-    means, stds = get_statistics(source, location, type)
-    start_date = utilities.round_down_day(datetime.datetime.now())
+def get_json_of_forecast(forecast, means, stds, source, start_date):
+    """Create the JSON object from the forecast and statistics data.
+
+    >>> forecast = {0: 50, 1: 51, 2: 52, 3: 53, 4: 54}
+    >>> means = {0: 1, 1: 0, 2: -1, 3: 0, 4: 1}
+    >>> stds = {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
+    >>> start_date = datetime.date(2016, 8, 1)
+    >>> json = get_json_of_forecast(forecast, means, stds, 'api', start_date)
+    >>> for item in json:
+    ...   print(sorted(item.items()))
+    ...   # doctest: +NORMALIZE_WHITESPACE
+    [('date', '2016-08-01'), ('pct05', 47.04), ('pct25', 48.326), ('pct50', 49),
+        ('pct75', 49.674), ('pct95', 50.96), ('source_raw', 50)]
+    [('date', '2016-08-02'), ('pct05', 49.04), ('pct25', 50.326), ('pct50', 51),
+        ('pct75', 51.674), ('pct95', 52.96), ('source_raw', 51)]
+    [('date', '2016-08-03'), ('pct05', 51.04), ('pct25', 52.326), ('pct50', 53),
+        ('pct75', 53.674), ('pct95', 54.96), ('source_raw', 52)]
+    [('date', '2016-08-04'), ('pct05', 51.04), ('pct25', 52.326), ('pct50', 53),
+        ('pct75', 53.674), ('pct95', 54.96), ('source_raw', 53)]
+    [('date', '2016-08-05'), ('pct05', 51.04), ('pct25', 52.326), ('pct50', 53),
+        ('pct75', 53.674), ('pct95', 54.96), ('source_raw', 54)]
+    """
     json = []
-    for ddate in range(SOURCE_TO_LENGTH[source]):
+    for ddate in range(models.SOURCE_TO_LENGTH[source]):
         if ddate in forecast:
             json.append({
                 'date': str(start_date + datetime.timedelta(ddate))[:10],
@@ -326,8 +381,20 @@ def return_json_of_forecast(source, type):
     return json
 
 
+def return_json_of_forecast(source, type):
+    """Function to return a JSON object containing the dates, forecast temp
+         points and the statistical spread.
+    """
+    location = 'PDX'
+    start_date = datetime.date.today()
+    forecast = data_loader.get_forecast(source, type, start_date)
+    means, stds = get_statistics(source, location, type)
+    json = get_json_of_forecast(forecast, means, stds, source, start_date)
+    return json
+
+
 def main():
     display_histogram('api', 'PDX', 'max', 2)
 
-if __name__ == '__main__':
+if __name__ == '__main__()':
     main()

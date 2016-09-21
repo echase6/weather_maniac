@@ -153,7 +153,6 @@ def process_days_to_max_min(days_to_max_min, predict_date, source):
             print(error)
 
 
-
 def get_retimed_fcsts_from_json(json_data, predict_date):
     """Harvests temperature points from json file.
 

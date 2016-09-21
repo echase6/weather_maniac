@@ -7,6 +7,7 @@ from time import strftime
 import re
 import datetime
 
+from . import models
 from . import key
 from . import logic
 
@@ -104,7 +105,6 @@ def process_api_data(json_string, today_str):
        are found for the time from midnight to midnight.
 
     >>> from . import load_test_json
-    >>> from . import models
     >>> today_str = '2016_06_16'
     >>> process_api_data(load_test_json.test_json, today_str)
     >>> forecasts = models.DayRecord.objects.all()
@@ -133,7 +133,6 @@ def process_html_data(daily_forecasts, today_str):
        are found for the time from midnight to midnight.
 
     >>> from . import load_test_html
-    >>> from . import models
     >>> today_str = '2016_07_24'
     >>> html_soup = extract_fcst_soup(load_test_html.test_html)
     >>> process_html_data(html_soup, today_str)
@@ -189,7 +188,6 @@ def process_meas_data(daily_meas_soup, today_str):
        are found for the time from midnight to midnight.
 
     >>> from . import load_test_meas
-    >>> from . import models
     >>> today_str = '2016_07_24'
     >>> meas_soup = extract_meas_soup(load_test_meas.test_meas_html)
     >>> process_meas_data(meas_soup, today_str)
@@ -211,6 +209,52 @@ def process_meas_data(daily_meas_soup, today_str):
         print(error)
     else:
         act_temp_model.save()
+
+
+def load_forecast_record(source, today):
+    """Ensure that the forecast record is current."""
+    try:
+        models.DayRecord.objects.get(
+            source=source,
+            date_reference=today,
+            day_in_advance=0
+        )
+    except models.DayRecord.DoesNotExist:
+        update_html_data()
+        update_api_data()
+
+
+def get_forecast(source, type, today):
+    """Get the current temperature forecast.
+
+    >>> today = datetime.date.today()
+    >>> for i in range(7):
+    ...   models.DayRecord(date_reference=today + datetime.timedelta(i),
+    ...   day_in_advance=i, source='api', max_temp=83, min_temp=50 + i).save()
+    ...   models.DayRecord(date_reference=today + datetime.timedelta(i),
+    ...   day_in_advance=i, source='html', max_temp=83, min_temp=50 - i).save()
+    >>> get_forecast('api', 'min', today)
+    {0: 50, 1: 51, 2: 52, 3: 53, 4: 54}
+    >>> get_forecast('html', 'min', today)
+    {0: 50, 1: 49, 2: 48, 3: 47, 4: 46, 5: 45, 6: 44}
+    >>> get_forecast('api', 'max', today)
+    {0: 83, 1: 83, 2: 83, 3: 83, 4: 83}
+    """
+    load_forecast_record(source, today)
+    records = []
+    for day in range(models.SOURCE_TO_LENGTH[source]):
+        records += [models.DayRecord.objects.get(
+            source=source,
+            day_in_advance=day,
+            date_reference=today + datetime.timedelta(day)
+        )]
+    if type == 'max':
+        days_to_temp = {record.day_in_advance: record.max_temp
+                        for record in records}
+    else:
+        days_to_temp = {record.day_in_advance: record.min_temp
+                        for record in records}
+    return days_to_temp
 
 
 def update_html_data():
