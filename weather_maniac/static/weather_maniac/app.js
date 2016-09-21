@@ -128,10 +128,17 @@ function drawPaths(svg, data, x, y) {
     y0(function(d) { return y(d.pct75); }).
     y1(function(d) { return y(d.pct50); });
 
-  var medianLine = d3.svg.line().
+  var innerArea = d3.svg.area().
     interpolate('basis').
-    x(function(d) { return x(d.date); }).
-    y(function(d) { return y(d.pct50); });
+    x(function(d) { return x(d.date) || 1; }).
+    y0(function(d) { return y(d.pct75); }).
+    y1(function(d) { return y(d.pct25); });
+
+  //
+  // var medianLine = d3.svg.line().
+  //   interpolate('basis').
+  //   x(function(d) { return x(d.date); }).
+  //   y(function(d) { return y(d.pct50); });
 
   var lowerInnerArea = d3.svg.area().
     interpolate('basis').
@@ -159,18 +166,23 @@ function drawPaths(svg, data, x, y) {
 
   svg.append('path').
     attr('class', 'area upper inner').
-    attr('d', upperInnerArea).
+    attr('d', innerArea).
     attr('clip-path', 'url(#rect-clip)');
-
-  svg.append('path').
-    attr('class', 'area lower inner').
-    attr('d', lowerInnerArea).
-    attr('clip-path', 'url(#rect-clip)');
-
-  svg.append('path').
-    attr('class', 'median-line').
-    attr('d', medianLine).
-    attr('clip-path', 'url(#rect-clip)');
+  //
+  // svg.append('path').
+  //   attr('class', 'area upper inner').
+  //   attr('d', upperInnerArea).
+  //   attr('clip-path', 'url(#rect-clip)');
+  //
+  // svg.append('path').
+  //   attr('class', 'area lower inner').
+  //   attr('d', lowerInnerArea).
+  //   attr('clip-path', 'url(#rect-clip)');
+  //
+  // svg.append('path').
+  //   attr('class', 'median-line').
+  //   attr('d', medianLine).
+  //   attr('clip-path', 'url(#rect-clip)');
 }
 
 /**
