@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import datetime
-import django
 import json
-import os
 import re
 import urllib.request
 from bs4 import BeautifulSoup
@@ -12,7 +10,6 @@ from time import strftime
 from . import key
 from . import logic
 from . import models
-
 
 root_path = 'C:/Users/Eric/Desktop/Weatherman/'
 api_arch_path = root_path + 'API_Arch/'
@@ -83,6 +80,7 @@ def store_jpg_file(contents, today_str):
 
 def archive_jpg_file():
     """JPG file archiver, since it is not run as part of an updater yet."""
+    print('Archiving measured...')
     today_str = strftime('%Y_%m_%d')
     jpg_contents = get_data(key.src1_str)
     store_jpg_file(jpg_contents, today_str)
@@ -269,6 +267,7 @@ def get_forecast(source, type, today):
 
 def update_html_data():
     """Main function to update and archive the web-site based forecasts."""
+    print('Updating html...')
     today_str = strftime('%Y_%m_%d')
     html_data = get_data(key.src2_str)
     html_soup = extract_fcst_soup(html_data)
@@ -278,6 +277,7 @@ def update_html_data():
 
 def update_api_data():
     """Main function to update and archive the api based forecasts."""
+    print('Updating api...')
     today_str = strftime('%Y_%m_%d')
     api_string = get_api_data(key.app_id_str)
     store_api_file(api_string, today_str)
@@ -286,6 +286,7 @@ def update_api_data():
 
 def update_meas_data():
     """Main function to update and archive the measured temps."""
+    print('Updating measured...')
     today_str = strftime('%Y_%m_%d')
     meas_data = get_data(key.meas_str)
     meas_soup = extract_meas_soup(meas_data)
@@ -300,7 +301,5 @@ def main():
     archive_jpg_file()
 
 
-if __name__ == '__main__()':
-    # os.environ.setdefault("DJANGO_SETTINGS_MODULE", "weather_maniac.settings")
-    # django.setup()
+if __name__ == '__main__':
     main()

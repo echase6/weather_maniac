@@ -32,9 +32,9 @@ class DayRecord(models.Model):
     def __str__(self):
         r"""String function
 
-        >>> str(DayRecord(date_reference=datetime.datetime(2016,6,1),
+        >>> str(DayRecord(date_reference=datetime.date(2016, 6, 1),
         ... day_in_advance=3, source='html', max_temp=83, min_temp=50))
-        '2016-06-01 00:00:00, 3, html, 83, 50'
+        '2016-06-01, 3, html, 83, 50'
         """
         return ', '.join([
             str(self.date_reference),
@@ -47,10 +47,10 @@ class DayRecord(models.Model):
     def __repr__(self):
         r"""Repr function
 
-        >>> repr(DayRecord(date_reference=datetime.datetime(2016,6,1),
+        >>> repr(DayRecord(date_reference=datetime.date(2016, 6, 1),
         ... day_in_advance=3, source='html', max_temp=83, min_temp=50))
         ...   # doctest: +NORMALIZE_WHITESPACE
-        "DayRecord(date=datetime.datetime(2016, 6, 1, 0, 0), day in advance=3,
+        "DayRecord(date=datetime.date(2016, 6, 1), day in advance=3,
         source='html', max temp=83, min temp=50"
         """
         return 'DayRecord(date={!r}, day in advance={!r}, source={!r}, ' \
@@ -77,9 +77,9 @@ class ActualDayRecord(models.Model):
     def __str__(self):
         r"""String function
 
-        >>> str(ActualDayRecord(date_meas=datetime.datetime(2016, 6, 1),
+        >>> str(ActualDayRecord(date_meas=datetime.date(2016, 6, 1),
         ... location="PDX", max_temp=83, min_temp=50))
-        '2016-06-01 00:00:00, PDX, 83, 50'
+        '2016-06-01, PDX, 83, 50'
         """
         return ', '.join([
             str(self.date_meas),
@@ -91,10 +91,10 @@ class ActualDayRecord(models.Model):
     def __repr__(self):
         r"""Repr function
 
-        >>> repr(ActualDayRecord(date_meas=datetime.datetime(2016, 6, 1),
+        >>> repr(ActualDayRecord(date_meas=datetime.date(2016, 6, 1),
         ... location="PDX", max_temp=83, min_temp=50))
         ...   # doctest: +NORMALIZE_WHITESPACE
-        "ActualDayRecord(date=datetime.datetime(2016, 6, 1, 0, 0),
+        "ActualDayRecord(date=datetime.date(2016, 6, 1),
         location='PDX', max_temp=83, min_temp=50)"
         """
         return 'ActualDayRecord(date={!r}, location={!r}, max_temp={!r}, ' \
@@ -175,9 +175,9 @@ class ErrorBin(models.Model):
         >>> histo = ErrorHistogram(source='api', type='max', location='PDX',
         ... day_in_advance=2)
         >>> str(ErrorBin(member_of_hist=histo, error=-1, quantity=10,
-        ... start_date=datetime.datetime(2016, 6, 1, 0, 0),
-        ... end_date=datetime.datetime(2016, 8, 1, 0, 0)))
-        'api, max, PDX, 2, -1, 10, 2016-06-01 00:00:00, 2016-08-01 00:00:00'
+        ... start_date=datetime.date(2016, 6, 1),
+        ... end_date=datetime.date(2016, 8, 1)))
+        'api, max, PDX, 2, -1, 10, 2016-06-01, 2016-08-01'
         """
         return ', '.join([
             str(self.member_of_hist),
@@ -193,13 +193,13 @@ class ErrorBin(models.Model):
         >>> histo = ErrorHistogram(source='api', type='max', location='PDX',
         ... day_in_advance=2)
         >>> repr(ErrorBin(member_of_hist=histo, error=-1, quantity=10,
-        ... start_date=datetime.datetime(2016, 6, 1, 0, 0),
-        ... end_date=datetime.datetime(2016, 8, 1, 0, 0)))
+        ... start_date=datetime.date(2016, 6, 1),
+        ... end_date=datetime.date(2016, 8, 1)))
         ...  # doctest: +NORMALIZE_WHITESPACE
         "ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max',
         location='PDX', day_in_advance=2), error=-1, quantity=10,
-        start_date=datetime.datetime(2016, 6, 1, 0, 0),
-        end_date=datetime.datetime(2016, 8, 1, 0, 0))"
+        start_date=datetime.date(2016, 6, 1),
+        end_date=datetime.date(2016, 8, 1))"
         """
         return 'ErrorBin(member_of_hist={!r}, error={!r}, quantity={!r}, ' \
                'start_date={!r}, end_date={!r})'.format(

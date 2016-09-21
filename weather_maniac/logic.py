@@ -28,8 +28,8 @@ def _qualify_date(date):
     False
     """
     return all([
-        date > datetime(2016, 5, 1, 0, 0).date(),
-        date < datetime(2116, 6, 1, 0, 0).date()
+        date > datetime(2016, 5, 1).date(),
+        date < datetime(2116, 6, 1).date()
     ])
 
 

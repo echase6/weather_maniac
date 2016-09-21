@@ -2,11 +2,11 @@
 
 import datetime
 import math
+import random
 from django.db.models import Max, Min
 
 from . import data_loader
 from . import models
-
 
 
 def create_histogram(source, location, type, day_in_advance):
@@ -28,13 +28,14 @@ def create_bin(histo, error, quantity, start_date, end_date):
 
     >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
     ... day_in_advance=2)
-    >>> create_bin(histo, -1, 10,datetime.datetime(2016, 6, 1, 0, 0),
-    ... datetime.datetime(2016, 8, 1, 0, 0))
+    >>> histo.save()
+    >>> create_bin(histo, -1, 10,datetime.date(2016, 6, 1),
+    ... datetime.date(2016, 8, 1))
     ...   # doctest: +NORMALIZE_WHITESPACE
     ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max',
     location='PDX', day_in_advance=2), error=-1, quantity=10,
-    start_date=datetime.datetime(2016, 6, 1, 0, 0),
-    end_date=datetime.datetime(2016, 8, 1, 0, 0))
+    start_date=datetime.date(2016, 6, 1),
+    end_date=datetime.date(2016, 8, 1))
     """
     return models.ErrorBin(
         member_of_hist=histo,
@@ -192,8 +193,8 @@ def is_histogram_stale(source, location, type, day_in_advance):
     ... day_in_advance=2)
     >>> histo.save()
     >>> models.ErrorBin(member_of_hist=histo, error=-1, quantity=10,
-    ... start_date=datetime.datetime(2016, 6, 1, 0, 0),
-    ... end_date=datetime.datetime(2016, 8, 1, 0, 0)).save()
+    ... start_date=datetime.date(2016, 6, 1),
+    ... end_date=datetime.date(2016, 8, 1)).save()
     >>> is_histogram_stale('api', 'PDX', 'max', 2)
     False
     >>> models.ActualDayRecord(date_meas=datetime.date(2016, 8, 2),
@@ -284,16 +285,19 @@ def display_histogram(source, location, type, day_in_advance):
 def get_all_bins(source, location, type, day_in_advance):
     """Returns all bins for a particular histogram.
 
-    >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
-    ... day_in_advance=2)
-    >>> histo.save()
-    >>> models.ErrorBin(member_of_hist=histo, error=1, quantity=3,
-    ... start_date=datetime.date(2016, 6, 1),
-    ... end_date=datetime.date(2016, 8, 1)).save()
+    >>> from . import load_test_records
+    >>> load_test_records.test_loader()
     >>> get_all_bins('api', 'PDX', 'max', 2)
     ...   # doctest: +NORMALIZE_WHITESPACE
-    <QuerySet [ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max',
+    <QuerySet
+    [ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max',
     location='PDX', day_in_advance=2), error=1, quantity=3,
+    start_date=datetime.date(2016, 6, 1), end_date=datetime.date(2016, 8, 1)),
+    ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max',
+    location='PDX', day_in_advance=2), error=2, quantity=10,
+    start_date=datetime.date(2016, 6, 1), end_date=datetime.date(2016, 8, 1)),
+    ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max',
+    location='PDX', day_in_advance=2), error=3, quantity=3,
     start_date=datetime.date(2016, 6, 1), end_date=datetime.date(2016, 8, 1))]>
     """
     histo = get_histogram(source, location, type, day_in_advance)
@@ -303,20 +307,10 @@ def get_all_bins(source, location, type, day_in_advance):
 def get_statistics_per_day(bins):
     """Get the statistics from a collection of bins.
 
-    >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
-    ... day_in_advance=2)
-    >>> histo.save()
+    >>> from . import load_test_records
+    >>> load_test_records.test_loader()
     >>> get_statistics_per_day([])
     (0, 0)
-    >>> models.ErrorBin(member_of_hist=histo, error=1, quantity=3,
-    ... start_date=datetime.date(2016, 6, 1),
-    ... end_date=datetime.date(2016, 8, 1)).save()
-    >>> models.ErrorBin(member_of_hist=histo, error=2, quantity=10,
-    ... start_date=datetime.date(2016, 6, 1),
-    ... end_date=datetime.date(2016, 8, 1)).save()
-    >>> models.ErrorBin(member_of_hist=histo, error=3, quantity=3,
-    ... start_date=datetime.date(2016, 6, 1),
-    ... end_date=datetime.date(2016, 8, 1)).save()
     >>> bins = get_all_bins('api', 'PDX', 'max', 2)
     >>> get_statistics_per_day(bins)
     (2.0, 0.6324555320336759)
@@ -333,6 +327,14 @@ def get_statistics_per_day(bins):
 def get_statistics(source, location, type):
     """Main function to collect statistics for application to the forecast
          points on the web-site.
+
+    >>> from . import load_test_records
+    >>> load_test_records.test_loader()
+    >>> get_statistics('api', 'PDX', 'max')
+    ...   # doctest: +NORMALIZE_WHITESPACE
+    ({0: 2.0, 1: 2.0, 2: 2.0, 3: 2.0, 4: 2.0},
+    {0: 0.6324555320336759, 1: 0.6324555320336759, 2: 0.6324555320336759,
+    3: 0.6324555320336759, 4: 0.6324555320336759})
     """
     means = {}
     stds = {}
@@ -342,6 +344,19 @@ def get_statistics(source, location, type):
         bins = get_all_bins(source, location, type, day)
         means[day], stds[day] = get_statistics_per_day(bins)
     return means, stds
+
+
+def obfuscate_forecast(forecast, start_date):
+    """Obfuscate forecast.
+
+    >>> forecast = {0: 50, 1: 51, 2: 52, 3: 53, 4: 54}
+    >>> obfuscate_forecast(forecast, datetime.date(2016, 8, 20))
+    {0: 50, 1: 52, 2: 52, 3: 54, 4: 53}
+    """
+    random.seed(a=str(start_date)[-1:])  # change rand num only when day changes
+    for day, temp in forecast.items():
+        forecast[day] = round(temp + random.uniform(-0.75, 0.75))
+    return forecast
 
 
 def get_json_of_forecast(forecast, means, stds, source, start_date):
@@ -388,6 +403,7 @@ def return_json_of_forecast(source, type):
     location = 'PDX'
     start_date = datetime.date.today()
     forecast = data_loader.get_forecast(source, type, start_date)
+    forecast = obfuscate_forecast(forecast, start_date)
     means, stds = get_statistics(source, location, type)
     json = get_json_of_forecast(forecast, means, stds, source, start_date)
     return json
