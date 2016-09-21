@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 
+import datetime
+import django
 import json
+import os
+import re
 import urllib.request
 from bs4 import BeautifulSoup
 from time import strftime
-import re
-import datetime
 
-from . import models
 from . import key
 from . import logic
+from . import models
+
 
 root_path = 'C:/Users/Eric/Desktop/Weatherman/'
 api_arch_path = root_path + 'API_Arch/'
@@ -76,6 +79,13 @@ def store_jpg_file(contents, today_str):
     file_name = screen_data_path + 'screen_' + today_str + '.jpg'
     with open(file_name, 'wb') as file:
         file.write(contents)
+
+
+def archive_jpg_file():
+    """JPG file archiver, since it is not run as part of an updater yet."""
+    today_str = strftime('%Y_%m_%d')
+    jpg_contents = get_data(key.src1_str)
+    store_jpg_file(jpg_contents, today_str)
 
 
 def store_html_file(fcast_soup, today_str):
@@ -287,7 +297,10 @@ def main():
     update_html_data()
     update_api_data()
     update_meas_data()
+    archive_jpg_file()
 
 
 if __name__ == '__main__()':
+    # os.environ.setdefault("DJANGO_SETTINGS_MODULE", "weather_maniac.settings")
+    # django.setup()
     main()
