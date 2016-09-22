@@ -1,5 +1,11 @@
-"""weather_maniac Logic."""
+"""Weather Maniac Logic modules.
 
+These functions deal with:
+  -- Creating instances of DayRecord to hold forecast data points
+  -- Creating instances of AcutalDayRecord to hold measure temperature points
+  -- Qualifying and then loading the forecast data into DayRecord
+  -- Qualifying and then loading the measured temps into ActualDayRecord
+"""
 from datetime import datetime, timedelta
 
 from . import models
@@ -42,6 +48,18 @@ def _qualify_fields(date, day_in_advance, source, max_temp, min_temp):
     if day_in_advance < 0 or day_in_advance > 7:
         raise ValueError('Day in advance not correct.  Got {}'
                          .format(day_in_advance))
+    if max_temp < -99 or max_temp > 199:
+        raise ValueError('Max temp not correct.  Got {}'.format(str(max_temp)))
+    if min_temp < -99 or min_temp > 199:
+        raise ValueError('Min temp not correct.  Got {}'.format(str(min_temp)))
+
+
+def _qualify_act_fields(date, location, max_temp, min_temp):
+    """Field qualifiers, prior to saving record."""
+    if not _qualify_date(date):
+        raise ValueError('Date not as expected.  Got {}'.format(date))
+    if location not in models.LOCATIONS.values():
+        raise ValueError('Source not correct.  Got {}'.format(source))
     if max_temp < -99 or max_temp > 199:
         raise ValueError('Max temp not correct.  Got {}'.format(str(max_temp)))
     if min_temp < -99 or min_temp > 199:
@@ -196,16 +214,6 @@ def get_actual(date, location, max_temp, min_temp):
     ...  # doctest: +NORMALIZE_WHITESPACE
     ActualDayRecord(date=datetime.date(2016, 8, 1), location='PDX',
     max_temp=83, min_temp=47)
-    >>> act2 = get_actual(datetime(2016, 8, 2).date(), 'PDX', 0, 0)
-    >>> act2.save()
-    >>> act2
-    ...  # doctest: +NORMALIZE_WHITESPACE
-    ActualDayRecord(date=datetime.date(2016, 8, 2), location='PDX',
-    max_temp=0, min_temp=0)
-    >>> for actual in models.ActualDayRecord.objects.all():
-    ...   print(str(actual))
-    2016-08-01, PDX, 83, 47
-    2016-08-02, PDX, 0, 0
     """
     _qualify_act_fields(date, location, max_temp, min_temp)
     try:
@@ -221,15 +229,3 @@ def get_actual(date, location, max_temp, min_temp):
             min_temp=min_temp
         )
     return act
-
-
-def _qualify_act_fields(date, location, max_temp, min_temp):
-    """Field qualifiers, prior to saving record."""
-    if not _qualify_date(date):
-        raise ValueError('Date not as expected.  Got {}'.format(date))
-    if location not in models.LOCATIONS.values():
-        raise ValueError('Source not correct.  Got {}'.format(source))
-    if max_temp < -99 or max_temp > 199:
-        raise ValueError('Max temp not correct.  Got {}'.format(str(max_temp)))
-    if min_temp < -99 or min_temp > 199:
-        raise ValueError('Min temp not correct.  Got {}'.format(str(min_temp)))

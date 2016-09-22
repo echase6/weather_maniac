@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+"""Weather Maniac Data Loading modules.
+
+These functions deal with data loading and archiving, and are intended to be
+  run at least once per day to add to the statistical model and also to make
+  a current 7-day (or 5-day) forecast available upon request.
+The main() function will make all of the necessary calls.
+"""
+
 import datetime
 import json
 import re

@@ -1,4 +1,10 @@
-"""Weather Maniac Analysis modules."""
+"""Weather Maniac Analysis modules.
+
+These functions deal with:
+  -- Creating and updating the Error Histogram/Bins
+  -- Calculating the statistics (mean, stdev)
+  -- Creating the JSON string to be returned to the Web Site.
+"""
 
 import datetime
 import math
