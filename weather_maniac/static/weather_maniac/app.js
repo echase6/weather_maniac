@@ -117,19 +117,19 @@ function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
  */
 function drawPaths(svg, data, x, y) {
   var upperOuterArea = d3.svg.area().
-    interpolate('basis').
+    // interpolate('basis').
     x(function(d) { return x(d.date) || 1; }).
     y0(function(d) { return y(d.pct95); }).
     y1(function(d) { return y(d.pct75); });
 
   var upperInnerArea = d3.svg.area().
-    interpolate('basis').
+    // interpolate('basis').
     x(function(d) { return x(d.date) || 1; }).
     y0(function(d) { return y(d.pct75); }).
     y1(function(d) { return y(d.pct50); });
 
   var innerArea = d3.svg.area().
-    interpolate('basis').
+    // interpolate('basis').
     x(function(d) { return x(d.date) || 1; }).
     y0(function(d) { return y(d.pct75); }).
     y1(function(d) { return y(d.pct25); });
@@ -141,13 +141,13 @@ function drawPaths(svg, data, x, y) {
   //   y(function(d) { return y(d.pct50); });
 
   var lowerInnerArea = d3.svg.area().
-    interpolate('basis').
+    // interpolate('basis').
     x(function(d) { return x(d.date) || 1; }).
     y0(function(d) { return y(d.pct50); }).
     y1(function(d) { return y(d.pct25); });
 
   var lowerOuterArea = d3.svg.area().
-    interpolate('basis').
+    // interpolate('basis').
     x(function(d) { return x(d.date) || 1; }).
     y0(function(d) { return y(d.pct25); }).
     y1(function(d) { return y(d.pct05); });
