@@ -8,13 +8,12 @@
           href="https://fonts.googleapis.com/css?family=Questrial">
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/site.css' %}">
-    <!-- <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
   </head>
   <body>
     <header>
       <div>
-        <img src="{% static 'weather_maniac/thermo.png' %}" style="width:50px;height:50px"></a>
-        <img src="{% static 'weather_maniac/maniac.png' %}" style="width:50px;height:50px"></a>
+        <img src="{% static 'weather_maniac/thermo.png' %}" style="width:50px;height:50px">
+        <img src="{% static 'weather_maniac/maniac.png' %}" style="width:50px;height:50px">
       </div>
       <div>
       <h1>Weather Maniac</h1>
@@ -28,33 +27,39 @@
     <ul class="nav nav-pills nav-justified">
   <li class="active"><a href="{% url 'index' %}">Home</a></li>
   <li><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
-  <li><a href="{% url 'prediction' %}">Get a 7-day temperature prediction.</a></li>
+  <li><a href="{% url 'prediction' %}">Get a Temperature Prediction.</a></li>
 </ul>
-    <!-- <ul>
-      <li><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
-      <li><a href="{% url 'prediction' %}">Get a 7-day temperature prediction.</a></li>
-    </ul> -->
   </nav>
   <main>
     <div>
   <p>
-    Follow the links to find out what the temperature will really be, with some
-    level of confidence.
+    <strong>Weather Maniac</strong> seeks to inform you about how much confidence
+    you should have in a temperature forecast. For example, when you are told that
+    it will be as warm as 80&deg this coming Saturday, can you confidently believe
+    it will be between 78&deg and 82&deg?  Or maybe 75&deg-85&deg?
   </p>
     <p>
-    Since temperature forecasting is an inexact science, historical predictions
-    have been analyzed to find out what error to expect, given the number of
-    days in-advance a prediction is made.
+    Historical predictions from a few forecasters have been compared with the
+    actual measure temperatures to find out how far off they typically are, and
+    the results have been summarized into a model that tells what to expect in
+    the future.
   </p>
     <p>
-    Due to the statistical nature of these errors, confidence-levels are the
-    best option.  Choose between 50% and 99% to get a feel for what to expect,
-    understanding that 100% certainty is an impossibility.
+    <strong>Weather Maniac</strong> cannot tell you exactly what temperature to
+    expect, but using this information it will tell you what to expect with 50%
+    confidence, and with 90% confidence.  See the Temperature Prediction page to
+    see more.
+  </p>
+    <p>
+    To learn more about the temperature forecasting services, see the Statistics
+    page.  Unfortunately, the sources cannot be identified.
   </p>
 </div>
 </main>
   <footer>
+    <div></div>  <!-- Place holder to make label centered -->
     <label><h4>Weather Manaic</h4></label>
+    <a href="https://en.wikipedia.org/wiki/MANIAC_I"><h4>*<b>M</b>athematical <b>A</b>nalyzer, <b>N</b>umerical <b>I</b>ntegrator, <b>a</b>nd <b>C</b>omputer</h4></a>
   </footer>
   </body>
 </html>

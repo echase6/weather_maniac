@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import datetime
+import math
 
 
 def round_down_day(ref_day):
@@ -30,3 +31,14 @@ def temp_f(temp_k):
     -28
     """
     return round(9 * (temp_k - 273.15) / 5 + 32)
+
+def find_abs_largest(num_list):
+    """Return the number farthest from zero.
+
+    >>> find_abs_largest([1, 2, -3])
+    -3.0
+    """
+    num_list.sort()
+    min_num = num_list[0]
+    max_num = num_list[-1]
+    return math.copysign(max([abs(min_num), abs(max_num)]), min_num + max_num)

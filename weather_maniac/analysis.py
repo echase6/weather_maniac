@@ -192,6 +192,8 @@ def is_histogram_stale(source, location, type, day_in_advance):
       -- it does not exist, or
       -- there is a forecast covering the day after the latest bin, and
       -- there is a measured point covering the day after the latest bin.
+      TODO:  This logic needs up-grading since one missing forecast or
+        measured point will result in nothing more being stale.
 
     >>> is_histogram_stale('api', 'PDX', 'max', 2)
     True

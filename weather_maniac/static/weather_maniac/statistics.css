@@ -1,0 +1,19 @@
+
+main {
+  flex-direction: column;
+}
+
+
+table {
+  min-width: 800px;
+}
+
+table, td {
+    border: 1px solid black;
+    padding: 2px;
+    /*border-collapse: collapse;*/
+}
+
+td {
+  margin: 2px;
+}

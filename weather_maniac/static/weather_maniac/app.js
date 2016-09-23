@@ -12,7 +12,7 @@
  */
 function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
   var legendWidth  = 100,
-    legendHeight = 320,
+    legendHeight = 240,
     radius = 16;
 
   // clipping to make sure nothing appears behind legend
@@ -81,7 +81,7 @@ function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
     attr('x', 50).
     attr('y', 105).
     attr('text-anchor', 'middle').
-    text('5% - 95%');
+    text('90% Confid.');
 
   legend.append('rect').
     attr('class', 'inner').
@@ -94,17 +94,17 @@ function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
     attr('x', 50).
     attr('y', 185).
     attr('text-anchor', 'middle').
-    text('25% - 75%');
-
-  legend.append('path').
-    attr('class', 'median-line').
-    attr('d', 'M10,290L90,290');
-
-  legend.append('text').
-    attr('x', 50).
-    attr('y', 265).
-    attr('text-anchor', 'middle').
-    text('Median');
+    text('50% Confid.');
+  //
+  // legend.append('path').
+  //   attr('class', 'median-line').
+  //   attr('d', 'M10,290L90,290');
+  //
+  // legend.append('text').
+  //   attr('x', 50).
+  //   attr('y', 265).
+  //   attr('text-anchor', 'middle').
+  //   text('Median');
 }
 
 /**
@@ -250,12 +250,12 @@ function startTransitions(svg, chartWidth, chartHeight,
   markers.forEach(function(marker, i) {
     setTimeout(function() {
       addMarker(marker, svg, chartHeight, x, y);
-    }, 100 + 200 * i);
+    }, 100 + 100 * i);
   });
 
   rectClip.transition().
-    duration(2000).
-    delay(2000).
+    duration(1000).
+    delay(200 + 100 * markers.length).
     attr('width', chartWidth);
 }
 
@@ -288,7 +288,8 @@ function makeChart(data, markers) {
                 innerTickSize(-chartHeight).
                 outerTickSize(0).
                 tickPadding(10).
-                ticks(d3.time.days, 1),
+                ticks(d3.time.days, 1).
+                tickFormat(d3.time.format('%a %e')),
     yAxis = d3.svg.axis().scale(y).orient('left').
                 innerTickSize(-chartWidth).
                 outerTickSize(0).

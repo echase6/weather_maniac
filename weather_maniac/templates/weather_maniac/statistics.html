@@ -8,12 +8,13 @@
           href="https://fonts.googleapis.com/css?family=Questrial">
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/site.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/statistics.css' %}">
   </head>
   <body>
     <header>
       <div>
-        <img src="{% static 'weather_maniac/thermo.png' %}" style="width:50px;height:50px"></a>
-        <img src="{% static 'weather_maniac/maniac.png' %}" style="width:50px;height:50px"></a>
+        <img src="{% static 'weather_maniac/thermo.png' %}" style="width:50px;height:50px">
+        <img src="{% static 'weather_maniac/maniac.png' %}" style="width:50px;height:50px">
       </div>
       <div>
       <h1>Weather Maniac</h1>
@@ -26,13 +27,47 @@
     <nav>
       <ul class="nav nav-pills nav-justified">
         <li><a href="{% url 'index' %}">Home</a></li>
-        <li  class="active"><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
-        <li><a href="{% url 'prediction' %}">Get a 7-day temperature prediction.</a></li>
+        <li class="active"><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
+        <li><a href="{% url 'prediction' %}">Get a Temperature Prediction.</a></li>
       </ul>
     </nav>
     <main>
-      Blah, blah, blah...
-    </main>
+        {% for sourceReq in stats %}
+          <table>
+          <tr>
+          <td>Forecaster: {{ sourceReq.source }}</td>
+          <td>Data starts: {{ sourceReq.start_date }}</td>
+          <td>Data ends: {{ sourceReq.end_date }}</td>
+        </tr>
+        </table>
+        <table>
+          <tr>
+            <td>Day in adv.</td>
+            {% for dayReq in sourceReq.stats_by_day %}
+            <td>{{ dayReq.day }}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td>Mean Error</td>
+            {% for dayReq in sourceReq.stats_by_day %}
+            <td>{{ dayReq.mean|floatformat:3 }}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td>StDev Error</td>
+            {% for dayReq in sourceReq.stats_by_day %}
+            <td>{{ dayReq.std|floatformat:3 }}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td>Max. Error</td>
+            {% for dayReq in sourceReq.stats_by_day %}
+            <td>{{ dayReq.max|floatformat:0 }}</td>
+            {% endfor %}
+          </tr>
+        </table><br />
+        {% endfor %}
+      </main>
     <footer>
       <label><h4>Weather Manaic</h4></label>
     </footer>
