@@ -7,14 +7,14 @@ SOURCES = ['html', 'api']
 SOURCE_TO_LENGTH = {'html': 7, 'api': 5}
 SOURCE_TO_NAME = {'html': 'Source 1', 'api': 'Source 2'}
 TYPES = ['max', 'min']
-LOCATIONS = {'AURORA STATE AIRPORT OR US':'AUR',
-             'OREGON CITY OR US':'OCO',
-             'PORTLAND INTERNATIONAL AIRPORT OR US':'PDX',
-             'TROUTDALE OR US':'TRO',
-             'PORTLAND KGW TV OR US':'KGW',
-             'GRESHAM 2 SW OR US':'GRE',
-             'PORTLAND WEATHER FORECAST OFFICE OR US':'PWO',
-             'NATURE PARK BEAVERTON OR US':'BNP'}
+LOCATIONS = {'AURORA STATE AIRPORT OR US': 'AUR',
+             'OREGON CITY OR US': 'OCO',
+             'PORTLAND INTERNATIONAL AIRPORT OR US': 'PDX',
+             'TROUTDALE OR US': 'TRO',
+             'PORTLAND KGW TV OR US': 'KGW',
+             'GRESHAM 2 SW OR US': 'GRE',
+             'PORTLAND WEATHER FORECAST OFFICE OR US': 'PWO',
+             'NATURE PARK BEAVERTON OR US': 'BNP'}
 
 
 class DayRecord(models.Model):
@@ -56,12 +56,12 @@ class DayRecord(models.Model):
         """
         return 'DayRecord(date={!r}, day in advance={!r}, source={!r}, ' \
                'max temp={!r}, min temp={!r}'.format(
-            self.date_reference,
-            self.day_in_advance,
-            self.source,
-            self.max_temp,
-            self.min_temp
-        )
+                self.date_reference,
+                self.day_in_advance,
+                self.source,
+                self.max_temp,
+                self.min_temp
+                )
 
 
 class ActualDayRecord(models.Model):
@@ -100,18 +100,18 @@ class ActualDayRecord(models.Model):
         """
         return 'ActualDayRecord(date={!r}, location={!r}, max_temp={!r}, ' \
                'min_temp={!r})'.format(
-            self.date_meas,
-            self.location,
-            self.max_temp,
-            self.min_temp
-        )
+                self.date_meas,
+                self.location,
+                self.max_temp,
+                self.min_temp
+                )
 
 
 class ErrorHistogram(models.Model):
     """Histogram of forecast errors
 
     source is the forecasting source, a member of SOURCES
-    type is either 'max' or 'min'.  length kept longer in case this is
+    mtype is either 'max' or 'min'.  length kept longer in case this is
        expanded to include rain, or other forecasting metrics, a TYPES member
     location is a member of LOCATIONS, the measurement point
 
@@ -120,19 +120,19 @@ class ErrorHistogram(models.Model):
     """
     source = models.CharField(max_length=6)
     location = models.CharField(max_length=6)
-    type = models.CharField(max_length=6)
-    day_in_advance= models.IntegerField()
+    mtype = models.CharField(max_length=6)
+    day_in_advance = models.IntegerField()
 
     def __str__(self):
         r"""String function
 
-        >>> str(ErrorHistogram(source='api', type='max', location='PDX',
+        >>> str(ErrorHistogram(source='api', mtype='max', location='PDX',
         ... day_in_advance=2))
         'api, max, PDX, 2'
         """
         return ', '.join([
             self.source,
-            self.type,
+            self.mtype,
             self.location,
             str(self.day_in_advance)
         ])
@@ -140,19 +140,19 @@ class ErrorHistogram(models.Model):
     def __repr__(self):
         r"""Repr function
 
-        >>> repr(ErrorHistogram(source='api', type='max', location='PDX',
+        >>> repr(ErrorHistogram(source='api', mtype='max', location='PDX',
         ... day_in_advance=2))
         ...   # doctest: +NORMALIZE_WHITESPACE
-        "ErrorHistogram(source='api', type='max', location='PDX',
+        "ErrorHistogram(source='api', mtype='max', location='PDX',
         day_in_advance=2)"
         """
-        return 'ErrorHistogram(source={!r}, type={!r}, location={!r}, ' \
+        return 'ErrorHistogram(source={!r}, mtype={!r}, location={!r}, ' \
                'day_in_advance={!r})'.format(
-            self.source,
-            self.type,
-            self.location,
-            self.day_in_advance
-        )
+                self.source,
+                self.mtype,
+                self.location,
+                self.day_in_advance
+                )
 
 
 class ErrorBin(models.Model):
@@ -173,7 +173,7 @@ class ErrorBin(models.Model):
     def __str__(self):
         r"""String function
 
-        >>> histo = ErrorHistogram(source='api', type='max', location='PDX',
+        >>> histo = ErrorHistogram(source='api', mtype='max', location='PDX',
         ... day_in_advance=2)
         >>> str(ErrorBin(member_of_hist=histo, error=-1, quantity=10,
         ... start_date=datetime.date(2016, 6, 1),
@@ -191,22 +191,22 @@ class ErrorBin(models.Model):
     def __repr__(self):
         r"""Repr function
 
-        >>> histo = ErrorHistogram(source='api', type='max', location='PDX',
+        >>> histo = ErrorHistogram(source='api', mtype='max', location='PDX',
         ... day_in_advance=2)
         >>> repr(ErrorBin(member_of_hist=histo, error=-1, quantity=10,
         ... start_date=datetime.date(2016, 6, 1),
         ... end_date=datetime.date(2016, 8, 1)))
         ...  # doctest: +NORMALIZE_WHITESPACE
-        "ErrorBin(member_of_hist=ErrorHistogram(source='api', type='max',
+        "ErrorBin(member_of_hist=ErrorHistogram(source='api', mtype='max',
         location='PDX', day_in_advance=2), error=-1, quantity=10,
         start_date=datetime.date(2016, 6, 1),
         end_date=datetime.date(2016, 8, 1))"
         """
         return 'ErrorBin(member_of_hist={!r}, error={!r}, quantity={!r}, ' \
                'start_date={!r}, end_date={!r})'.format(
-            self.member_of_hist,
-            self.error,
-            self.quantity,
-            self.start_date,
-            self.end_date
-        )
+                self.member_of_hist,
+                self.error,
+                self.quantity,
+                self.start_date,
+                self.end_date
+                )

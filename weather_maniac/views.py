@@ -20,7 +20,7 @@ def render_statistics(request):
     #     'stats': [
     #         {
     #          'source': 'Source 1',
-    #          'type': 'max',
+    #          'mtype': 'max',
     #          'start_date': datetime.date(2016, 6, 1),
     #          'end_date': datetime.date(2016, 8, 1),
     #          'stats_by_day': [
@@ -32,7 +32,7 @@ def render_statistics(request):
     #          ]},
     #         {
     #             'source': 'Source 2',
-    #             'type': 'max',
+    #             'mtype': 'max',
     #             'start_date': datetime.date(2016, 6, 1),
     #             'end_date': datetime.date(2016, 8, 1),
     #             'stats_by_day': [
@@ -47,25 +47,26 @@ def render_statistics(request):
     template_list = {}
     template_stats = []
     for source in models.SOURCES:
-        for type in models.TYPES:
+        for mytpe in models.TYPES:
             end_date = datetime.date(2016, 5, 1)
             start_date = datetime.date(2116, 6, 1)
             record = {
                 'source': models.SOURCE_TO_NAME[source],
-                'type': type
+                'mtype': mytpe
             }
             stats_by_day = []
-            mean, std = analysis.get_statistics(source, 'PDX', type)
+            mean, std = analysis.get_statistics(source, 'PDX', mytpe)
             for day in range(models.SOURCE_TO_LENGTH[source]):
-                bins = analysis.get_all_bins(source, 'PDX', type, day)
-                # mean, std = analysis.get_statistics(source, 'PDX', type)
+                bins = analysis.get_all_bins(source, 'PDX', mytpe, day)
+                # mean, std = analysis.get_statistics(source, 'PDX', mtype)
                 bin_start = bins.aggregate(Min('start_date'))['start_date__min']
                 start_date = min([bin_start, start_date])
                 bin_end = bins.aggregate(Max('end_date'))['end_date__max']
                 end_date = max([bin_end, end_date])
                 max_pos_error = bins.aggregate(Max('error'))['error__max']
                 max_neg_error = bins.aggregate(Min('error'))['error__min']
-                max_error = utilities.find_abs_largest([max_pos_error, max_neg_error])
+                max_error = utilities.find_abs_largest([max_pos_error,
+                                                        max_neg_error])
                 record_by_day = {
                     'day': day,
                     'mean': mean[day],
@@ -94,7 +95,7 @@ def render_graph(request):
 def return_json(request):
     """Return the JSON data for a forecast."""
     fcst_source = request.GET.get('forecaster')
-    fcst_type = request.GET.get('type')
+    fcst_type = request.GET.get('mtype')
     # fcst_location = request.GET.get('location')
     json_data = analysis.return_json_of_forecast(fcst_source, fcst_type)
     return JsonResponse(json_data, safe=False)

@@ -240,7 +240,7 @@ def load_forecast_record(source, today):
         update_api_data()
 
 
-def get_forecast(source, type, today):
+def get_forecast(source, mtype, today):
     """Get the current temperature forecast.
 
     >>> today = datetime.date.today()
@@ -264,7 +264,7 @@ def get_forecast(source, type, today):
             day_in_advance=day,
             date_reference=today + datetime.timedelta(day)
         )]
-    if type == 'max':
+    if mtype == 'max':
         days_to_temp = {record.day_in_advance: record.max_temp
                         for record in records}
     else:

@@ -3,14 +3,15 @@
 from . import models
 import datetime
 
+
 def test_loader():
     """This dumps data into histograms for testing purposes."""
     for source in models.SOURCES:
-        for type in models.TYPES:
+        for mtype in models.TYPES:
             for day in range(models.SOURCE_TO_LENGTH[source]):
                 histo = models.ErrorHistogram(
                     source=source,
-                    type=type,
+                    mtype=mtype,
                     location='PDX',
                     day_in_advance=day)
                 histo.save()

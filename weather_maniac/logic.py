@@ -59,7 +59,7 @@ def _qualify_act_fields(date, location, max_temp, min_temp):
     if not _qualify_date(date):
         raise ValueError('Date not as expected.  Got {}'.format(date))
     if location not in models.LOCATIONS.values():
-        raise ValueError('Source not correct.  Got {}'.format(source))
+        raise ValueError('Location not correct.  Got {}'.format(location))
     if max_temp < -99 or max_temp > 199:
         raise ValueError('Max temp not correct.  Got {}'.format(str(max_temp)))
     if min_temp < -99 or min_temp > 199:
@@ -202,7 +202,6 @@ def get_retimed_fcsts_from_json(json_data, predict_date):
 def get_actual(date, location, max_temp, min_temp):
     """Get the actual point, creating a new one if needed.
 
-    >>> from . import models
     >>> act = get_actual(datetime(2016, 8, 1).date(), 'PDX', 83, 47)
     >>> act.save()
     >>> act
