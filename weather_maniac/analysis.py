@@ -141,30 +141,37 @@ def update_histogram(histo, error, date):
         bin.save()
 
 
-def populate_histogram(source, location, type, day_in_advance):
+def populate_histogram(source, location, type, day_in_advance, start_day):
     """Main function to populate Error Bins in appropriate Error Histogram.
 
     Combines data from ActualDayRecords (i.e., measured temperature) and data
        from matching DayRecords (i.e., forecast).
 
-    >>> models.ActualDayRecord(date_meas=datetime.date(2016, 6, 1),
-    ... location="PDX", max_temp=76, min_temp=55).save()
-    >>> models.DayRecord(date_reference=datetime.date(2016, 6, 1),
-    ... day_in_advance=3, source='api', max_temp=83, min_temp=50).save()
-    >>> populate_histogram('api', 'PDX', 'max', 3)
+    >>> models.ActualDayRecord(date_meas=datetime.date(2016, 7, 1),
+    ... location='PDX', max_temp=76, min_temp=55).save()
+    >>> populate_histogram('api', 'PDX', 'max', 3, datetime.date(2016, 6, 2))
+    No forecast matching actual record for 2016-07-01
     ErrorHistogram(source='api', type='max', location='PDX', day_in_advance=3)
-    >>> populate_histogram('html', 'PDX', 'max', 3)
-    No forecast matching actual record for 2016-06-01
-    ErrorHistogram(source='html', type='max', location='PDX', day_in_advance=3)
+    >>> models.DayRecord(date_reference=datetime.date(2016, 7, 1),
+    ... day_in_advance=3, source='api', max_temp=83, min_temp=50).save()
+    >>> populate_histogram('api', 'PDX', 'max', 3, datetime.date(2016, 6, 2))
+    ...   # doctest: +NORMALIZE_WHITESPACE
+    Updating source: api, loc: PDX, type: max, day adv: 3, error: 7,
+    date: 2016-07-01
+    ErrorHistogram(source='api', type='max', location='PDX', day_in_advance=3)
+    >>> populate_histogram('api', 'PDX', 'max', 3, datetime.date(2016, 7, 20))
+    ErrorHistogram(source='api', type='max', location='PDX', day_in_advance=3)
     >>> for histo in models.ErrorHistogram.objects.all():
     ...   print(str(histo))
     api, max, PDX, 3
-    html, max, PDX, 3
     >>> for bin in models.ErrorBin.objects.all():
     ...   print(str(bin))
-    api, max, PDX, 3, 7, 1, 2016-06-01, 2016-06-01
+    api, max, PDX, 3, 7, 1, 2016-07-01, 2016-07-01
     """
-    actuals = models.ActualDayRecord.objects.filter(location=location)
+    actuals = models.ActualDayRecord.objects.filter(
+        location=location,
+        date_meas__gte=start_day
+    )
     histo = get_histogram(source, location, type, day_in_advance)
     for act_record in actuals:
         date = act_record.date_meas
@@ -181,11 +188,48 @@ def populate_histogram(source, location, type, day_in_advance):
             error = forecast.max_temp - act_record.max_temp
         else:
             error = forecast.min_temp - act_record.min_temp
+        print('Updating source: {}, loc: {}, type: {}, '
+              'day adv: {}, error: {}, date: {}'.
+              format(source, location, type, day_in_advance, error, str(date)))
         update_histogram(histo, error, date)
     return histo
 
 
-def is_histogram_stale(source, location, type, day_in_advance):
+def get_latest_matching_day(source, location, day_in_adv, start_day):
+    """Check for presence of both a DayRecord and an ActualDayRecord on any one
+         day between a particular day and today.
+
+    >>> models.ActualDayRecord(date_meas=datetime.date(2016, 8, 1),
+    ... location='PDX', max_temp=76, min_temp=55).save()
+    >>> models.DayRecord(date_reference=datetime.date(2016, 8, 2),
+    ... day_in_advance=3, source='api', max_temp=83, min_temp=50).save()
+    >>> get_latest_matching_day('api', 'PDX', 3, datetime.date(2016, 7, 2))
+    datetime.date(2016, 6, 1)
+    >>> models.DayRecord(date_reference=datetime.date(2016, 8, 1),
+    ... day_in_advance=3, source='api', max_temp=83, min_temp=50).save()
+    >>> get_latest_matching_day('api', 'PDX', 3, datetime.date(2016, 7, 2))
+    datetime.date(2016, 8, 1)
+    >>> get_latest_matching_day('api', 'PDX', 3, datetime.date(2016, 8, 3))
+    datetime.date(2016, 6, 1)
+    """
+    day_count = (datetime.date.today() - start_day).days
+    day_iter = [start_day + datetime.timedelta(n) for n in range(day_count)]
+    latest_day = datetime.date(2016, 6, 1)
+    for day in day_iter:
+        if ((len(models.DayRecord.objects.filter(
+            date_reference=day,
+            day_in_advance=day_in_adv,
+            source=source,
+        )) > 0) and
+        (len(models.ActualDayRecord.objects.filter(
+            date_meas=day,
+            location = location
+        )) > 0)):
+            latest_day = day
+    return latest_day
+
+
+def get_latest_histogram_bin(source, location, type, day_in_advance):
     """Check whether data is waiting to be populated in histogram.
 
     The logic here is to label the histogram as stale if:
@@ -195,24 +239,12 @@ def is_histogram_stale(source, location, type, day_in_advance):
       TODO:  This logic needs up-grading since one missing forecast or
         measured point will result in nothing more being stale.
 
-    >>> is_histogram_stale('api', 'PDX', 'max', 2)
-    True
-    >>> histo = models.ErrorHistogram(source='api', type='max', location='PDX',
-    ... day_in_advance=2)
-    >>> histo.save()
-    >>> models.ErrorBin(member_of_hist=histo, error=-1, quantity=10,
-    ... start_date=datetime.date(2016, 6, 1),
-    ... end_date=datetime.date(2016, 8, 1)).save()
-    >>> is_histogram_stale('api', 'PDX', 'max', 2)
-    False
-    >>> models.ActualDayRecord(date_meas=datetime.date(2016, 8, 2),
-    ... location="PDX", max_temp=76, min_temp=55).save()
-    >>> is_histogram_stale('api', 'PDX', 'max', 2)
-    False
-    >>> models.DayRecord(date_reference=datetime.date(2016, 8, 2),
-    ... day_in_advance=2, source='api', max_temp=83, min_temp=50).save()
-    >>> is_histogram_stale('api', 'PDX', 'max', 2)
-    True
+    >>> get_latest_histogram_bin('api', 'PDX', 'max', 2)
+    datetime.date(2016, 6, 1)
+    >>> from . import load_test_records
+    >>> load_test_records.test_loader()
+    >>> get_latest_histogram_bin('api', 'PDX', 'max', 2)
+    datetime.date(2016, 8, 1)
     """
     try:
         histo = models.ErrorHistogram.objects.get(
@@ -222,18 +254,9 @@ def is_histogram_stale(source, location, type, day_in_advance):
             type=type
         )
     except models.ErrorHistogram.DoesNotExist:
-        return True
+        return datetime.date(2016, 6, 1)
     bins = histo.errorbin_set.all()
-    latest_bin_date = bins.aggregate(Max('end_date'))['end_date__max']
-    next_bin_date = latest_bin_date + datetime.timedelta(1)
-    return ((len(models.DayRecord.objects.filter(
-                date_reference=next_bin_date,
-                day_in_advance=day_in_advance,
-                source=source
-            )) > 0) and
-            (len(models.ActualDayRecord.objects.filter(
-                date_meas=next_bin_date
-            )) > 0))
+    return bins.aggregate(Max('end_date'))['end_date__max']
 
 
 def display_histogram(source, location, type, day_in_advance):
@@ -347,8 +370,10 @@ def get_statistics(source, location, type):
     means = {}
     stds = {}
     for day in range(models.SOURCE_TO_LENGTH[source]):
-        if is_histogram_stale(source, location, type, day):
-            populate_histogram(source, location, type, day)
+        latest_bin = get_latest_histogram_bin(source, location, type, day)
+        latest_day = get_latest_matching_day(source, location, day, latest_bin)
+        if latest_day > latest_bin:
+            populate_histogram(source, location, type, day, latest_bin)
         bins = get_all_bins(source, location, type, day)
         means[day], stds[day] = get_statistics_per_day(bins)
     return means, stds
