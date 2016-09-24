@@ -13,6 +13,7 @@ from django.db.models import Max, Min
 
 from . import data_loader
 from . import models
+from . import utilities
 
 
 def create_histogram(source, location, mtype, day_in_advance):
@@ -430,7 +431,7 @@ def get_json_of_forecast(forecast, means, stds, source, start_date):
 
 
 def return_json_of_forecast(source, mtype):
-    """Function to return a JSON object containing the dates, forecast temp
+    """Main function to return a JSON object containing the dates, forecast temp
          points and the statistical spread.
     """
     location = 'PDX'
@@ -440,6 +441,91 @@ def return_json_of_forecast(source, mtype):
     means, stds = get_statistics(source, location, mtype)
     json = get_json_of_forecast(forecast, means, stds, source, start_date)
     return json
+
+
+def modify_start_date(ebins, start_date):
+    """Return the earlier of start_date and what is in the bins.
+
+    >>> from . import load_test_records
+    >>> load_test_records.test_loader()
+    >>> ebins = get_all_bins('api', 'PDX', 'min', 2)
+    >>> start_date = datetime.date(2016, 7, 1)
+    >>> modify_start_date(ebins, start_date)
+    datetime.date(2016, 6, 1)
+    """
+    bin_start = ebins.aggregate(Min('start_date'))['start_date__min']
+    return min([bin_start, start_date])
+
+
+def modify_end_date(ebins, end_date):
+    """Return the later of end_date and what is in the bins.
+
+    >>> from . import load_test_records
+    >>> load_test_records.test_loader()
+    >>> ebins = get_all_bins('api', 'PDX', 'min', 2)
+    >>> end_date = datetime.date(2016, 7, 1)
+    >>> modify_end_date(ebins, end_date)
+    datetime.date(2016, 8, 1)
+    """
+    bin_end = ebins.aggregate(Max('end_date'))['end_date__max']
+    return max([bin_end, end_date])
+
+
+def find_max_error(ebins):
+    """Return the maximum error from the bins.
+
+    >>> from . import load_test_records
+    >>> load_test_records.test_loader()
+    >>> ebins = get_all_bins('api', 'PDX', 'min', 2)
+    >>> find_max_error(ebins)
+    3.0
+    """
+    max_pos_error = ebins.aggregate(Max('error'))['error__max']
+    max_neg_error = ebins.aggregate(Min('error'))['error__min']
+    return utilities.find_abs_largest([max_pos_error, max_neg_error])
+
+
+def get_stats_json(source, mtype):
+    """Get the stats JSON
+
+    >>> from . import load_test_records
+    >>> load_test_records.test_loader()
+    >>> json = get_stats_json('api', 'max')
+    >>> sorted(json.items())
+    ...   # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    [('end_date', datetime.date(2016, 8, 1)), ('mtype', 'max'),
+    ('source', 'Source 2'), ('start_date', datetime.date(2016, 6, 1)),
+    ('stats_by_day', [...])]
+    >>> for day in json['stats_by_day']:
+    ...   sorted(day.items())
+    [('day', 0), ('max', 3.0), ('mean', 2.0), ('std', 0.6324555320336759)]
+    [('day', 1), ('max', 3.0), ('mean', 2.0), ('std', 0.6324555320336759)]
+    [('day', 2), ('max', 3.0), ('mean', 2.0), ('std', 0.6324555320336759)]
+    [('day', 3), ('max', 3.0), ('mean', 2.0), ('std', 0.6324555320336759)]
+    [('day', 4), ('max', 3.0), ('mean', 2.0), ('std', 0.6324555320336759)]
+    """
+    end_date = datetime.date(2016, 5, 1)
+    start_date = datetime.date(2116, 6, 1)
+    stats_by_day = []
+    mean, std = get_statistics(source, 'PDX', mtype)
+    for day in range(models.SOURCE_TO_LENGTH[source]):
+        ebins = get_all_bins(source, 'PDX', mtype, day)
+        start_date = modify_start_date(ebins, start_date)
+        end_date = modify_end_date(ebins, end_date)
+        record_by_day = {
+            'day': day,
+            'mean': mean[day],
+            'std': std[day],
+            'max': find_max_error(ebins)
+        }
+        stats_by_day.append(record_by_day)
+    return {
+        'source': models.SOURCE_TO_NAME[source],
+        'mtype': mtype,
+        'stats_by_day': stats_by_day,
+        'start_date': start_date,
+        'end_date': end_date
+        }
 
 
 def main():

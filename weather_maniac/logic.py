@@ -2,7 +2,7 @@
 
 These functions deal with:
   -- Creating instances of DayRecord to hold forecast data points
-  -- Creating instances of AcutalDayRecord to hold measure temperature points
+  -- Creating instances of ActualDayRecord to hold measure temperature points
   -- Qualifying and then loading the forecast data into DayRecord
   -- Qualifying and then loading the measured temps into ActualDayRecord
 """
@@ -13,7 +13,13 @@ from . import utilities
 
 
 def _create_forecast(date, day_in_advance, source, max_temp, min_temp):
-    """Create Forecast model."""
+    """Create Forecast model.
+
+    >>> _create_forecast(datetime(2016, 8, 1).date(), 2, 'api', 83, 47)
+    ... # doctest: +NORMALIZE_WHITESPACE
+    DayRecord(date=datetime.date(2016, 8, 1), day in advance=2,
+    source='api', max temp=83, min temp=47
+    """
     return models.DayRecord(
         date_reference=date,
         day_in_advance=day_in_advance,
@@ -40,7 +46,30 @@ def _qualify_date(date):
 
 
 def _qualify_fields(date, day_in_advance, source, max_temp, min_temp):
-    """Field qualifiers, prior to saving record."""
+    """Field qualifiers, prior to saving record.
+
+    >>> _qualify_fields(datetime(2016, 5, 1).date(), 3, 'api', 65, 23)
+    Traceback (most recent call last):
+    ...
+    ValueError: Date not as expected.  Got 2016-05-01
+    >>> _qualify_fields(datetime(2016, 7, 1).date(), 3, 'aaa', 65, 23)
+    Traceback (most recent call last):
+    ...
+    ValueError: Source not correct.  Got aaa
+    >>> _qualify_fields(datetime(2016, 7, 1).date(), 3, 'api', 615, 23)
+    Traceback (most recent call last):
+    ...
+    ValueError: Max temp not correct.  Got 615
+    >>> _qualify_fields(datetime(2016, 7, 1).date(), 3, 'api', 65, -223)
+    Traceback (most recent call last):
+    ...
+    ValueError: Min temp not correct.  Got -223
+    >>> _qualify_fields(datetime(2016, 7, 1).date(), 8, 'api', 65, 23)
+    Traceback (most recent call last):
+    ...
+    ValueError: Day in advance not correct.  Got 8
+    >>> _qualify_fields(datetime(2016, 7, 1).date(), 4, 'api', 65, 23)
+    """
     if not _qualify_date(date):
         raise ValueError('Date not as expected.  Got {}'.format(date))
     if source not in models.SOURCES:
@@ -55,7 +84,26 @@ def _qualify_fields(date, day_in_advance, source, max_temp, min_temp):
 
 
 def _qualify_act_fields(date, location, max_temp, min_temp):
-    """Field qualifiers, prior to saving record."""
+    """Field qualifiers, prior to saving record.
+
+    >>> _qualify_act_fields(datetime(2016, 5, 1).date(), 'PDX', 65, 23)
+    Traceback (most recent call last):
+    ...
+    ValueError: Date not as expected.  Got 2016-05-01
+    >>> _qualify_act_fields(datetime(2016, 7, 1).date(), 'PDX', 615, 23)
+    Traceback (most recent call last):
+    ...
+    ValueError: Max temp not correct.  Got 615
+    >>> _qualify_act_fields(datetime(2016, 7, 1).date(), 'PDX', 65, -123)
+    Traceback (most recent call last):
+    ...
+    ValueError: Min temp not correct.  Got -123
+    >>> _qualify_act_fields(datetime(2016, 7, 1).date(), 'PPP', 65, 23)
+    Traceback (most recent call last):
+    ...
+    ValueError: Location not correct.  Got PPP
+    >>> _qualify_act_fields(datetime(2016, 7, 1).date(), 'PDX', 65, 23)
+    """
     if not _qualify_date(date):
         raise ValueError('Date not as expected.  Got {}'.format(date))
     if location not in models.LOCATIONS.values():
@@ -181,7 +229,7 @@ def get_retimed_fcsts_from_json(json_data, predict_date):
     >>> predict_date = datetime(2016, 6, 16).date()
     >>> json_data = json.loads(load_test_json.test_json)
     >>> get_retimed_fcsts_from_json(json_data, predict_date)
-    ...   # doctest: +NORMALIZE_WHITESPACE
+    ... # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
     {0: (59, 51), 1: (63, 47), 2: (60, 47), 3: (69, 39), 4: (82, 44),
     5: (82, 51)}
     """
@@ -228,3 +276,4 @@ def get_actual(date, location, max_temp, min_temp):
             min_temp=min_temp
         )
     return act
+
