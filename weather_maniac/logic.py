@@ -233,6 +233,8 @@ def get_retimed_fcsts_from_json(json_data, predict_date):
     {0: (59, 51), 1: (63, 47), 2: (60, 47), 3: (69, 39), 4: (82, 44),
     5: (82, 51)}
     """
+    if 'list' not in json_data:
+        return {}
     date_max_min_temp = {}
     for row in json_data['list']:
         forecast_utc = row['dt']

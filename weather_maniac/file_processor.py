@@ -89,7 +89,7 @@ def _process_csv_row(row, max_temp_index, min_temp_index):
         act_temp_model.save()
 
 
-def process_actual_file(filename):
+def process_actual_csv_file(filename):
     """Main function to extract actual temperatures from the .csv file and
        save the contents in an ActualDayRecord.
     TMAX/TMIN column parameterized in case the .csv file changes format.
@@ -113,14 +113,14 @@ def move_file_to_archive(f, data_path, arch_path):
 def process_api_files():
     """Process the files loaded thought the API (JSON files).
 
-    Comparison with 10kB done to strip off partial files (normal: 15kB)
+    Comparison with 100B done to strip off partial files (normal: 15kB)
     """
     only_files = [f for f in listdir(api_data_path)
                   if isfile(join(api_data_path, f))]
     for f in only_files:
-        date_string = f[:10]
+        date_string = date_re.search(f).group(0)
         print('processing API {}'.format(date_string))
-        if getsize(api_data_path + f) > 10000:
+        if getsize(api_data_path + f) > 100:
             process_json_file(api_data_path + f)
             move_file_to_archive(f, api_data_path, api_arch_path)
 
@@ -128,14 +128,15 @@ def process_api_files():
 def process_html_files():
     """Process the files loaded thought the web site (i.e., HTML).
 
-    Comparison with 100KB done to strip off partial files (normal: 115kB)
+    Comparison with 10KB done to strip off partial files
+      (original: 115kB, archived: 15kB)
     """
     only_files = [f for f in listdir(html_data_path)
                   if isfile(join(html_data_path, f))]
     for f in only_files:
-        f_string = f[5:15]
-        print('processing HTML {}'.format(f_string))
-        if getsize(html_data_path + f) > 100000:
+        date_string = date_re.search(f).group(0)
+        print('processing HTML {}'.format(date_string))
+        if getsize(html_data_path + f) > 10000:
             process_html_file(html_data_path + f)
             move_file_to_archive(f, html_data_path, html_arch_path)
 
@@ -148,7 +149,7 @@ def process_actual_files():
         f_string = f
         print('processing Actuals {}'.format(f_string))
         if getsize(actual_data_path + f) > 10:
-            process_actual_file(actual_data_path + f)
+            process_actual_csv_file(actual_data_path + f)
             move_file_to_archive(f, actual_data_path, actual_arch_path)
 
 

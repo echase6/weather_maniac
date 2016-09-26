@@ -19,6 +19,7 @@ db.sqlite3
 
 # Non-tracked directories
 demos/
+rawdatafiles/
 stubs/
 
 # Hide keys

@@ -14,12 +14,15 @@ import re
 import urllib.request
 from bs4 import BeautifulSoup
 from time import strftime
+from django.core.files import File
+
 
 from . import key
 from . import logic
 from . import models
+from . import settings
 
-root_path = 'C:/Users/Eric/Desktop/Weatherman/'
+root_path = settings.BASE_DIR + '/rawdatafiles/'
 api_arch_path = root_path + 'API_Arch/'
 html_arch_path = root_path + 'HTML_Arch/'
 screen_data_path = root_path + 'Screen_Data/'
@@ -45,7 +48,9 @@ def store_api_file(contents, today_str):
       processed immediately and not being queued for processing.
     The file repo has each file with the date+time encoded in the filename.
     """
-    with open((api_arch_path + today_str), 'w') as file:
+    file_name = api_arch_path + 'api_' + today_str + '.json'
+    with open(file_name, 'w') as f:
+        file = File(f)
         file.write(contents)
 
 
@@ -82,7 +87,8 @@ def store_jpg_file(contents, today_str):
     Since these are jpg files, they are stored as bytes.
     """
     file_name = screen_data_path + 'screen_' + today_str + '.jpg'
-    with open(file_name, 'wb') as file:
+    with open(file_name, 'wb') as f:
+        file = File(f)
         file.write(contents)
 
 
@@ -104,8 +110,9 @@ def store_html_file(fcast_soup, today_str):
     The file repo has each file with the date+time encoded in the filename.
     """
     fcast_html_string = str(fcast_soup)
-    file_name = html_arch_path + '/html_' + today_str + '.html'
-    with open(file_name, 'w') as file:
+    file_name = html_arch_path + 'html_' + today_str + '.html'
+    with open(file_name, 'w') as f:
+        file = File(f)
         file.write(fcast_html_string)
 
 
@@ -191,7 +198,7 @@ def store_meas_file(meas_soup, today_str):
     The file repo has each file with the date+time encoded in the filename.
     """
     meas_html_string = str(meas_soup)
-    file_name = actual_arch_path + '/meas_' + today_str + '.html'
+    file_name = actual_arch_path + 'meas_' + today_str + '.html'
     with open(file_name, 'w') as file:
         file.write(meas_html_string)
 

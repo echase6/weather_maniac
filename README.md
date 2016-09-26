@@ -55,4 +55,23 @@ Web Site serving is done through Django's standard process:
 
 The website landing-page should be subsequently available at:
  http://127.0.0.1:8000/
+ 
+
+### Installation:
+* Clone the repository.  It will provide the code to run:
+
+`$ git clone https://github.com/echase6/weather_maniac`
+
+* Install necessary modules:
+
+`$ pip install -r requirements.txt`
+
+* Build database:
+  * Create the db.sqlite3 file, but with no useful data:
+  `$ python manage.py migrate`
+  * Create a superuser account, which might come in handy later
+  `$ python manage.py createsuperuser`
+  * Build the database from archived data:
+  `$ python manage.py loaddata weather_maniac.json`
+
 
