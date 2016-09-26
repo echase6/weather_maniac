@@ -5,7 +5,7 @@ import datetime
 
 SOURCES = ['html', 'api']
 SOURCE_TO_LENGTH = {'html': 7, 'api': 5}
-SOURCE_TO_NAME = {'html': 'Source 1', 'api': 'Source 2'}
+SOURCE_TO_NAME = {'html': 'Service A', 'api': 'Service B'}
 TYPES = ['max', 'min']
 LOCATIONS = {'AURORA STATE AIRPORT OR US': 'AUR',
              'OREGON CITY OR US': 'OCO',

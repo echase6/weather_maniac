@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Weather Maniac</title>
+    <!-- <link rel="stylesheet" type="text/css"
+          href="https://fonts.googleapis.com/css?family=Cha"> -->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/site.css' %}">
+  </head>
+  <body>
+    <header>
+      <div>
+        <img src="{% static 'weather_maniac/thermo.png' %}" style="width:50px;height:50px">
+        <img src="{% static 'weather_maniac/maniac.png' %}" style="width:50px;height:50px">
+      </div>
+      <div>
+      <h1>Weather Maniac</h1>
+      <h2>...adding confidence to temperature forecasts</h2>
+      </div>
+      <div>
+        <h4>Info</h4>
+      </div>
+  </header>
+  <nav>
+    <ul class="nav nav-pills nav-justified">
+  <li><a href="{% url 'index' %}">Home</a></li>
+  <li class="active"><a href="{% url 'faq' %}">Q &amp A</a></li>
+  <li><a href="{% url 'statistics' %}">See Statistics</a></li>
+  <li><a href="{% url 'prediction' %}">Get a Temp Forecast</a></li>
+</ul>
+  </nav>
+  <main>
+    <div>
+      <p>
+      <strong>Who are the forecasters?</strong> They are being listed as 'Service A'
+      and 'Service B' for now.  It can be said that A's forecasts are being
+      broadcasted in the Portland Area and thus involve a human being, where
+      B is an automated weather forecasting service.
+    </p>
+  <p>
+    <strong>Where is temperature being measured?</strong> Minimum and Maximum
+    daily temperatures are being measured at Portland International Airport,
+    which is also the location where the forecasts are predicting the temperature.
+    </p>
+    <p>
+    <strong>How is forecast error calculated?</strong> Weather Maniac archives
+    7-day (Service A) and 5-day (Service B) forecasts on the day they are made, and
+    compares these predictions with the actual High and Low temperatures when
+    they become available (the day after they occur).
+  </p>
+    <p>
+    <strong>What is Bias?</strong> In short, bias is a consistent offset error in
+    forecasts, the most common example being <a href="https://en.wikipedia.org/wiki/Wet_bias">Wet Bias</a>
+    where rainfall amount is consistently over forecasted.
+  </p>
+    <p>
+    <strong>What is Error StDev?</strong> This reflects how the forecast error
+    varies from forecast to forecast, and thus is a measurement of how random
+    the error is (and thus is hard to correct.)
+  </p>
+</div>
+</main>
+  <footer>
+    <div></div>  <!-- Place holder to make label centered -->
+    <label><h4>Weather Manaic</h4></label>
+    <a href="https://en.wikipedia.org/wiki/MANIAC_I"><h4>*<b>M</b>athematical <b>A</b>nalyzer, <b>N</b>umerical <b>I</b>ntegrator, <b>a</b>nd <b>C</b>omputer</h4></a>
+  </footer>
+  </body>
+</html>

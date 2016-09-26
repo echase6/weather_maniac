@@ -11,6 +11,11 @@ def render_index(request):
     return render(request, 'weather_maniac/index.html')
 
 
+def render_faq(request):
+    """Render the faq page."""
+    return render(request, 'weather_maniac/faq.html')
+
+
 def render_statistics(request):
     """Render the statistics (analysis) page."""
     template_stats = []

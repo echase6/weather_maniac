@@ -1,14 +1,16 @@
 body {
-  font-family: 'Questrial', serif;
-  font-size: 24px;
+  font-family: 'Helvetica', sans-serif;
+  font-size: 14px;
   /*position:fixed;*/
   display: flex;
   width: 100%;
   flex-direction: column;
   overflow: scroll;
+  background-color: #f9f6fb;
 }
 
 header {
+  font-family: 'Freight Sans Pro', sans-serif;
   background-color: DeepSkyBlue;
   display: flex;
   flex-direction: row;
@@ -34,7 +36,7 @@ header > div:last-child {
 header > div > h1 {
   text-align: center;
   color: WhiteSmoke;
-  font-size: 48px;
+  font-size: 28px;
   /*flex: 1;*/
 }
 

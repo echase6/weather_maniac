@@ -1,16 +1,33 @@
 
 main {
-  flex-direction: column;
+  display: flex;
+  /*flex-direction: column;*/
+  flex-flow: row wrap;
+}
+
+body {
+  /*background-image: "{% static 'weather_maniac/background.jpg' %}";*/
+  background-image: url("c:/users/echase/weather_maniac/weather_maniac/static/weather_maniac/background.jpg");
+  background-size: cover;
+
 }
 
 
 table {
-  min-width: 800px;
+  max-width: 800px;
+  margin-right: 20px;
 }
 
-table, td {
+caption {
+  caption-side: top;
+}
+
+td:nth-child(even) {background-color: #f2f2f2}
+
+table, td, th {
     border: 1px solid black;
-    padding: 2px;
+    padding: 5px;
+    text-align: center;
     /*border-collapse: collapse;*/
 }
 

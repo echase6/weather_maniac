@@ -4,8 +4,8 @@
   <head>
     <meta charset="utf-8">
     <title>Statistics</title>
-    <link rel="stylesheet" type="text/css"
-          href="https://fonts.googleapis.com/css?family=Questrial">
+    <!-- <link rel="stylesheet" type="text/css"
+          href="https://fonts.googleapis.com/css?family=Questrial"> -->
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/site.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/statistics.css' %}">
@@ -27,42 +27,46 @@
     <nav>
       <ul class="nav nav-pills nav-justified">
         <li><a href="{% url 'index' %}">Home</a></li>
-        <li class="active"><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
-        <li><a href="{% url 'prediction' %}">Get a Temperature Prediction.</a></li>
+        <li><a href="{% url 'faq' %}">Q &amp A</a></li>
+        <li class="active"><a href="{% url 'statistics' %}">See Statistics</a></li>
+        <li><a href="{% url 'prediction' %}">Get a Temp Forecast</a></li>
       </ul>
     </nav>
     <main>
         {% for sourceReq in stats %}
           <table>
-          <tr>
+          <!-- <tr>
           <td>Forecaster: {{ sourceReq.source }}</td>
-          <td>Data starts: {{ sourceReq.start_date }}</td>
-          <td>Data ends: {{ sourceReq.end_date }}</td>
-        </tr>
+          <td>{{ sourceReq.mtype}} daily temp.</td>
+          <td>Data range: {{ sourceReq.start_date }} - {{ sourceReq.end_date }}</td>
+        </tr> -->
         </table>
         <table>
+          <caption>
+            Forecaster: {{ sourceReq.source }}, {{ sourceReq.mtype}} daily temp.
+          </caption>
           <tr>
-            <td>Day in adv.</td>
+            <th>Day in adv.</th>
             {% for dayReq in sourceReq.stats_by_day %}
             <td>{{ dayReq.day }}</td>
             {% endfor %}
           </tr>
           <tr>
-            <td>Mean Error</td>
+            <th>Bias</th>
             {% for dayReq in sourceReq.stats_by_day %}
-            <td>{{ dayReq.mean|floatformat:3 }}</td>
+            <td>{{ dayReq.mean|floatformat:1 }}&deg</td>
             {% endfor %}
           </tr>
           <tr>
-            <td>StDev Error</td>
+            <th>StDev Error</th>
             {% for dayReq in sourceReq.stats_by_day %}
-            <td>{{ dayReq.std|floatformat:3 }}</td>
+            <td>{{ dayReq.std|floatformat:1 }}&deg</td>
             {% endfor %}
           </tr>
           <tr>
-            <td>Max. Error</td>
+            <th>Worst Error</th>
             {% for dayReq in sourceReq.stats_by_day %}
-            <td>{{ dayReq.max|floatformat:0 }}</td>
+            <td>{{ dayReq.max|floatformat:0 }}&deg</td>
             {% endfor %}
           </tr>
         </table><br />

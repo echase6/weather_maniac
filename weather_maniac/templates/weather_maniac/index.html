@@ -4,8 +4,8 @@
   <head>
     <meta charset="utf-8">
     <title>Weather Maniac</title>
-    <link rel="stylesheet" type="text/css"
-          href="https://fonts.googleapis.com/css?family=Questrial">
+    <!-- <link rel="stylesheet" type="text/css"
+          href="https://fonts.googleapis.com/css?family=Cha"> -->
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/site.css' %}">
   </head>
@@ -25,9 +25,10 @@
   </header>
   <nav>
     <ul class="nav nav-pills nav-justified">
-  <li class="active"><a href="{% url 'index' %}">Home</a></li>
-  <li><a href="{% url 'statistics' %}">Learn more about the statistics.</a></li>
-  <li><a href="{% url 'prediction' %}">Get a Temperature Prediction.</a></li>
+      <li class="active"><a href="{% url 'index' %}">Home</a></li>
+      <li><a href="{% url 'faq' %}">Q &amp A</a></li>
+      <li><a href="{% url 'statistics' %}">See Statistics</a></li>
+      <li><a href="{% url 'prediction' %}">Get a Temp Forecast</a></li>
 </ul>
   </nav>
   <main>
