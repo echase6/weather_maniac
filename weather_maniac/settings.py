@@ -133,7 +133,7 @@ MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 if 'DJANGO_SECRET_KEY' in os.environ:
     SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
-    DEBUG = False
+    DEBUG = True
     ALLOWED_HOSTS = ['*']
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
