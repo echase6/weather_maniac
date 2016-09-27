@@ -129,7 +129,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 # Will overwrite settings with production config vars from env variables if
 # Heroku is detected.
 #
-MIDDLEWARE_CLASSES = []
+# MIDDLEWARE_CLASSES = []
 #
 MIDDLEWARE_CLASSES.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
