@@ -64,6 +64,7 @@ main {
   flex-direction: row;
   padding: 50px;
   min-height: 550px;
+  max-width: 960px;
 }
 
 

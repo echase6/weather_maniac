@@ -34,13 +34,6 @@
     </nav>
     <main>
         {% for sourceReq in stats %}
-          <table>
-          <!-- <tr>
-          <td>Forecaster: {{ sourceReq.source }}</td>
-          <td>{{ sourceReq.mtype}} daily temp.</td>
-          <td>Data range: {{ sourceReq.start_date }} - {{ sourceReq.end_date }}</td>
-        </tr> -->
-        </table>
         <table>
           <caption>
             Forecaster: {{ sourceReq.source }}, {{ sourceReq.mtype}} daily temp.

@@ -24,3 +24,4 @@ stubs/
 
 # Hide keys
 key.py
+.env
