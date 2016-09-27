@@ -294,7 +294,8 @@ def update_api_data():
     """Main function to update and archive the api based forecasts."""
     print('Updating api...')
     today_str = strftime('%Y_%m_%d')
-    api_string = get_api_data(settings.WM_APP_ID)
+    app_str = '&'.join([settings.WM_APP_ID, settings.WM_APP_KEY])
+    api_string = get_api_data(app_str)
     store_api_file(api_string, today_str)
     process_api_data(api_string, today_str)
 

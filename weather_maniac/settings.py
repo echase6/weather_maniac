@@ -152,6 +152,7 @@ if 'AWS_ACCESS_KEY_ID' in os.environ:
     AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
 
 WM_APP_ID = os.environ['WM_APP_ID']
+WM_APP_KEY = os.environ['WM_APP_KEY']
 WM_SRC1_ID = os.environ['WM_SRC1_ID']
 WM_SRC2_ID = os.environ['WM_SRC2_ID']
 WM_MEAS_ID = os.environ['WM_MEAS_ID']
