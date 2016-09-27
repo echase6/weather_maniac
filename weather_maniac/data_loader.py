@@ -17,7 +17,7 @@ from time import strftime
 from django.core.files import File
 
 
-from . import key
+# from . import key
 from . import logic
 from . import models
 from . import settings
@@ -96,7 +96,7 @@ def archive_jpg_file():
     """JPG file archiver, since it is not run as part of an updater yet."""
     print('Archiving measured...')
     today_str = strftime('%Y_%m_%d')
-    jpg_contents = get_data(key.src1_str)
+    jpg_contents = get_data(settings.WM_SRC1_ID)
     store_jpg_file(jpg_contents, today_str)
 
 
@@ -284,7 +284,7 @@ def update_html_data():
     """Main function to update and archive the web-site based forecasts."""
     print('Updating html...')
     today_str = strftime('%Y_%m_%d')
-    html_data = get_data(key.src2_str)
+    html_data = get_data(settings.WM_SRC2_ID)
     html_soup = extract_fcst_soup(html_data)
     store_html_file(html_soup, today_str)
     process_html_data(html_soup, today_str)
@@ -294,7 +294,7 @@ def update_api_data():
     """Main function to update and archive the api based forecasts."""
     print('Updating api...')
     today_str = strftime('%Y_%m_%d')
-    api_string = get_api_data(key.app_id_str)
+    api_string = get_api_data(settings.WM_APP_ID)
     store_api_file(api_string, today_str)
     process_api_data(api_string, today_str)
 
@@ -303,7 +303,7 @@ def update_meas_data():
     """Main function to update and archive the measured temps."""
     print('Updating measured...')
     today_str = strftime('%Y_%m_%d')
-    meas_data = get_data(key.meas_str)
+    meas_data = get_data(settings.WM_MEAS_ID)
     meas_soup = extract_meas_soup(meas_data)
     store_meas_file(meas_soup, today_str)
     process_meas_data(meas_soup, today_str)

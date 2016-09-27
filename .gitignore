@@ -23,5 +23,6 @@ rawdatafiles/
 stubs/
 
 # Hide keys
-# key.py
+key.py
 .env
+.env.local
