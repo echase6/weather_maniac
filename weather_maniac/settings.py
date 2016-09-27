@@ -48,6 +48,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
 ROOT_URLCONF = 'weather_maniac.urls'
@@ -127,8 +128,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 # Heroku production settings
 # Will overwrite settings with production config vars from env variables if
 # Heroku is detected.
-
-MIDDLEWARE_CLASSES.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+#
+# MIDDLEWARE_CLASSES = []
+#
+# MIDDLEWARE_CLASSES.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 if 'DJANGO_SECRET_KEY' in os.environ:
     SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
@@ -148,4 +151,4 @@ if 'AWS_ACCESS_KEY_ID' in os.environ:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
     AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
-AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
+    AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
