@@ -4,7 +4,7 @@ from . import models
 import datetime
 
 
-def test_loader():
+def histo_loader():
     """This dumps data into histograms for testing purposes."""
     for source in models.SOURCES:
         for mtype in models.TYPES:
@@ -24,3 +24,23 @@ def test_loader():
                         start_date=datetime.date(2016, 6, 1),
                         end_date=datetime.date(2016, 8, 1)
                     ).save()
+
+
+def record_loader():
+    """Dumps data into Day Records and Actual Day Records"""
+    location = 'PDX'
+    start_day = datetime.date(2016, 7, 1)
+    day_count = 12
+    day_iter = [start_day + datetime.timedelta(n) for n in range(day_count)]
+    for date in day_iter:
+        models.ActualDayRecord(date_meas=date,
+                               location=location,
+                               max_temp=76,
+                               min_temp=55).save()
+        for source in models.SOURCES:
+            for day in range(3):
+                models.DayRecord(date_reference=date,
+                                 day_in_advance=day,
+                                 source=source,
+                                 max_temp=74 + day,
+                                 min_temp=57 - day).save()

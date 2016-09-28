@@ -12,12 +12,11 @@ import datetime
 import json
 import re
 import urllib.request
-from bs4 import BeautifulSoup
 from time import strftime
+
+from bs4 import BeautifulSoup
 from django.core.files import File
 
-
-# from . import key
 from . import logic
 from . import models
 from . import settings
@@ -286,7 +285,8 @@ def update_html_data():
     today_str = strftime('%Y_%m_%d')
     html_data = get_data(settings.WM_SRC2_ID)
     html_soup = extract_fcst_soup(html_data)
-    store_html_file(html_soup, today_str)
+    if settings.WM_LOCAL:
+        store_html_file(html_soup, today_str)
     process_html_data(html_soup, today_str)
 
 
@@ -296,7 +296,8 @@ def update_api_data():
     today_str = strftime('%Y_%m_%d')
     app_str = '&'.join([settings.WM_APP_ID, settings.WM_APP_KEY])
     api_string = get_api_data(app_str)
-    store_api_file(api_string, today_str)
+    if settings.WM_LOCAL:
+        store_api_file(api_string, today_str)
     process_api_data(api_string, today_str)
 
 
@@ -306,7 +307,8 @@ def update_meas_data():
     today_str = strftime('%Y_%m_%d')
     meas_data = get_data(settings.WM_MEAS_ID)
     meas_soup = extract_meas_soup(meas_data)
-    store_meas_file(meas_soup, today_str)
+    if settings.WM_LOCAL:
+        store_meas_file(meas_soup, today_str)
     process_meas_data(meas_soup, today_str)
 
 
@@ -314,7 +316,8 @@ def main():
     update_html_data()
     update_api_data()
     update_meas_data()
-    archive_jpg_file()
+    if settings.WM_LOCAL:
+        archive_jpg_file()
 
 
 if __name__ == '__main__':

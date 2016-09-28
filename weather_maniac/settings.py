@@ -133,7 +133,7 @@ MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 if 'DJANGO_SECRET_KEY' in os.environ:
     SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
-    DEBUG = True
+    DEBUG = False
     ALLOWED_HOSTS = ['*']
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -151,8 +151,18 @@ if 'AWS_ACCESS_KEY_ID' in os.environ:
     AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
     AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
 
-WM_APP_ID = os.environ['WM_APP_ID']
-WM_APP_KEY = os.environ['WM_APP_KEY']
-WM_SRC1_ID = os.environ['WM_SRC1_ID']
-WM_SRC2_ID = os.environ['WM_SRC2_ID']
-WM_MEAS_ID = os.environ['WM_MEAS_ID']
+if os.path.isfile(BASE_DIR + '\env_local.py'):
+    import env_local
+    WM_APP_ID = env_local.WM_APP_ID
+    WM_APP_KEY = env_local.WM_APP_KEY
+    WM_SRC1_ID = env_local.WM_SRC1_ID
+    WM_SRC2_ID = env_local.WM_SRC2_ID
+    WM_MEAS_ID = env_local.WM_MEAS_ID
+    WM_LOCAL = True
+else:
+    WM_APP_ID = os.environ['WM_APP_ID']
+    WM_APP_KEY = os.environ['WM_APP_KEY']
+    WM_SRC1_ID = os.environ['WM_SRC1_ID']
+    WM_SRC2_ID = os.environ['WM_SRC2_ID']
+    WM_MEAS_ID = os.environ['WM_MEAS_ID']
+    WM_LOCAL = False

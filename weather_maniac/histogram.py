@@ -1,9 +1,7 @@
-"""Weather Maniac Analysis modules.
+"""Weather Maniac Histogram modules.
 
 These functions deal with:
   -- Creating and updating the Error Histogram/Bins
-  -- Calculating the statistics (mean, stdev)
-  -- Creating the JSON string to be returned to the Web Site.
 """
 
 import datetime
@@ -142,6 +140,46 @@ def update_histogram(histo, error, date):
         ebin.save()
 
 
+def populate_all_histograms():
+    """Maintenance function to re-generate all histograms
+
+    Since the histograms update on an as-needed basis, this function might
+    be used if:
+    -- Rebuilding the database, to avoid users getting delayed page load, or
+    -- A gap is created in Acutal Day Records which is filled in later (and
+       thus is not caught by the automatic updator).
+
+    >>> from . import load_test_records
+    >>> load_test_records.record_loader()
+    >>> populate_all_histograms()
+    ... # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    Updating source: html, loc: PDX, mtype: max, day adv: 0, error: -2,
+    date: 2016-07-01 ...
+    No forecast matching actual record for 2016-07-12
+    >>> for ebin in models.ErrorBin.objects.all():
+    ...   print(str(ebin))
+    html, max, PDX, 0, -2, 12, 2016-07-01, 2016-07-12
+    html, max, PDX, 1, -1, 12, 2016-07-01, 2016-07-12
+    html, max, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
+    html, min, PDX, 0, 2, 12, 2016-07-01, 2016-07-12
+    html, min, PDX, 1, 1, 12, 2016-07-01, 2016-07-12
+    html, min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
+    api, max, PDX, 0, -2, 12, 2016-07-01, 2016-07-12
+    api, max, PDX, 1, -1, 12, 2016-07-01, 2016-07-12
+    api, max, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
+    api, min, PDX, 0, 2, 12, 2016-07-01, 2016-07-12
+    api, min, PDX, 1, 1, 12, 2016-07-01, 2016-07-12
+    api, min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
+    """
+    for source in models.SOURCES:
+        for mtype in models.TYPES:
+            for day_in_advance in range(models.SOURCE_TO_LENGTH[source]):
+                location = 'PDX'
+                start_day = datetime.date(2016, 6, 1)
+                populate_histogram(source, location, mtype, day_in_advance,
+                                   start_day)
+
+
 def populate_histogram(source, location, mtype, day_in_advance, start_day):
     """Main function to populate Error Bins in appropriate Error Histogram.
 
@@ -243,7 +281,7 @@ def get_latest_histogram_bin(source, location, mtype, day_in_advance):
     >>> get_latest_histogram_bin('api', 'PDX', 'max', 2)
     datetime.date(2016, 6, 1)
     >>> from . import load_test_records
-    >>> load_test_records.test_loader()
+    >>> load_test_records.histo_loader()
     >>> get_latest_histogram_bin('api', 'PDX', 'max', 2)
     datetime.date(2016, 8, 1)
     """
@@ -318,7 +356,7 @@ def get_all_bins(source, location, mtype, day_in_advance):
     """Returns all bins for a particular histogram.
 
     >>> from . import load_test_records
-    >>> load_test_records.test_loader()
+    >>> load_test_records.histo_loader()
     >>> get_all_bins('api', 'PDX', 'max', 2)
     ...   # doctest: +NORMALIZE_WHITESPACE
     <QuerySet
@@ -340,7 +378,7 @@ def get_statistics_per_day(bins):
     """Get the statistics from a collection of bins.
 
     >>> from . import load_test_records
-    >>> load_test_records.test_loader()
+    >>> load_test_records.histo_loader()
     >>> get_statistics_per_day([])
     (0, 0)
     >>> bins = get_all_bins('api', 'PDX', 'max', 2)
@@ -361,7 +399,7 @@ def get_statistics(source, location, mtype):
          points on the web-site.
 
     >>> from . import load_test_records
-    >>> load_test_records.test_loader()
+    >>> load_test_records.histo_loader()
     >>> get_statistics('api', 'PDX', 'max')
     ...   # doctest: +NORMALIZE_WHITESPACE
     ({0: 2.0, 1: 2.0, 2: 2.0, 3: 2.0, 4: 2.0},
@@ -378,154 +416,6 @@ def get_statistics(source, location, mtype):
         bins = get_all_bins(source, location, mtype, day)
         means[day], stds[day] = get_statistics_per_day(bins)
     return means, stds
-
-
-def obfuscate_forecast(forecast, start_date):
-    """Obfuscate forecast.
-
-    >>> forecast = {0: 50, 1: 51, 2: 52, 3: 53, 4: 54}
-    >>> obfuscate_forecast(forecast, datetime.date(2016, 8, 20))
-    {0: 50, 1: 52, 2: 52, 3: 54, 4: 53}
-    """
-    random.seed(a=str(start_date)[-1:])  # change rand num only when day changes
-    for day, temp in forecast.items():
-        forecast[day] = round(temp + random.uniform(-0.75, 0.75))
-    return forecast
-
-
-def get_json_of_forecast(forecast, means, stds, source, start_date):
-    """Create the JSON object from the forecast and statistics data.
-
-    >>> forecast = {0: 50, 1: 51, 2: 52, 3: 53, 4: 54}
-    >>> means = {0: 1, 1: 0, 2: -1, 3: 0, 4: 1}
-    >>> stds = {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
-    >>> start_date = datetime.date(2016, 8, 1)
-    >>> json = get_json_of_forecast(forecast, means, stds, 'api', start_date)
-    >>> for item in json:
-    ...   print(sorted(item.items()))
-    ...   # doctest: +NORMALIZE_WHITESPACE
-    [('date', '2016-08-01'), ('pct05', 47.04), ('pct25', 48.326), ('pct50', 49),
-        ('pct75', 49.674), ('pct95', 50.96), ('source_raw', 50)]
-    [('date', '2016-08-02'), ('pct05', 49.04), ('pct25', 50.326), ('pct50', 51),
-        ('pct75', 51.674), ('pct95', 52.96), ('source_raw', 51)]
-    [('date', '2016-08-03'), ('pct05', 51.04), ('pct25', 52.326), ('pct50', 53),
-        ('pct75', 53.674), ('pct95', 54.96), ('source_raw', 52)]
-    [('date', '2016-08-04'), ('pct05', 51.04), ('pct25', 52.326), ('pct50', 53),
-        ('pct75', 53.674), ('pct95', 54.96), ('source_raw', 53)]
-    [('date', '2016-08-05'), ('pct05', 51.04), ('pct25', 52.326), ('pct50', 53),
-        ('pct75', 53.674), ('pct95', 54.96), ('source_raw', 54)]
-    """
-    json = []
-    for ddate in range(models.SOURCE_TO_LENGTH[source]):
-        if ddate in forecast:
-            json.append({
-                'date': str(start_date + datetime.timedelta(ddate))[:10],
-                'source_raw': forecast[ddate],
-                'pct05': forecast[ddate] - means[ddate] - 1.96 * stds[ddate],
-                'pct25': forecast[ddate] - means[ddate] - 0.674 * stds[ddate],
-                'pct50': forecast[ddate] - means[ddate],
-                'pct75': forecast[ddate] - means[ddate] + 0.674 * stds[ddate],
-                'pct95': forecast[ddate] - means[ddate] + 1.96 * stds[ddate]
-            })
-    return json
-
-
-def return_json_of_forecast(source, mtype):
-    """Main function to return a JSON object containing the dates, forecast temp
-         points and the statistical spread.
-    """
-    location = 'PDX'
-    start_date = datetime.date.today()
-    forecast = data_loader.get_forecast(source, mtype, start_date)
-    forecast = obfuscate_forecast(forecast, start_date)
-    means, stds = get_statistics(source, location, mtype)
-    json = get_json_of_forecast(forecast, means, stds, source, start_date)
-    return json
-
-
-def modify_start_date(ebins, start_date):
-    """Return the earlier of start_date and what is in the bins.
-
-    >>> from . import load_test_records
-    >>> load_test_records.test_loader()
-    >>> ebins = get_all_bins('api', 'PDX', 'min', 2)
-    >>> start_date = datetime.date(2016, 7, 1)
-    >>> modify_start_date(ebins, start_date)
-    datetime.date(2016, 6, 1)
-    """
-    bin_start = ebins.aggregate(Min('start_date'))['start_date__min']
-    return min([bin_start, start_date])
-
-
-def modify_end_date(ebins, end_date):
-    """Return the later of end_date and what is in the bins.
-
-    >>> from . import load_test_records
-    >>> load_test_records.test_loader()
-    >>> ebins = get_all_bins('api', 'PDX', 'min', 2)
-    >>> end_date = datetime.date(2016, 7, 1)
-    >>> modify_end_date(ebins, end_date)
-    datetime.date(2016, 8, 1)
-    """
-    bin_end = ebins.aggregate(Max('end_date'))['end_date__max']
-    return max([bin_end, end_date])
-
-
-def find_max_error(ebins):
-    """Return the maximum error from the bins.
-
-    >>> from . import load_test_records
-    >>> load_test_records.test_loader()
-    >>> ebins = get_all_bins('api', 'PDX', 'min', 2)
-    >>> find_max_error(ebins)
-    3.0
-    """
-    max_pos_error = ebins.aggregate(Max('error'))['error__max']
-    max_neg_error = ebins.aggregate(Min('error'))['error__min']
-    return utilities.find_abs_largest([max_pos_error, max_neg_error])
-
-
-def get_stats_json(source, mtype):
-    """Get the stats JSON
-
-    >>> from . import load_test_records
-    >>> load_test_records.test_loader()
-    >>> json = get_stats_json('api', 'max')
-    >>> sorted(json.items())
-    ...   # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-    [('end_date', datetime.date(2016, 8, 1)), ('mtype', 'max'),
-    ('source', 'Source 2'), ('start_date', datetime.date(2016, 6, 1)),
-    ('stats_by_day', [...])]
-    >>> for day in json['stats_by_day']:
-    ...   sorted(day.items())
-    [('day', 0), ('max', 3.0), ('mean', 2.0), ('std', 0.6324555320336759)]
-    [('day', 1), ('max', 3.0), ('mean', 2.0), ('std', 0.6324555320336759)]
-    [('day', 2), ('max', 3.0), ('mean', 2.0), ('std', 0.6324555320336759)]
-    [('day', 3), ('max', 3.0), ('mean', 2.0), ('std', 0.6324555320336759)]
-    [('day', 4), ('max', 3.0), ('mean', 2.0), ('std', 0.6324555320336759)]
-    """
-    end_date = datetime.date(2016, 5, 1)
-    start_date = datetime.date(2116, 6, 1)
-    stats_by_day = []
-    mean, std = get_statistics(source, 'PDX', mtype)
-    for day in range(models.SOURCE_TO_LENGTH[source]):
-        ebins = get_all_bins(source, 'PDX', mtype, day)
-        start_date = modify_start_date(ebins, start_date)
-        end_date = modify_end_date(ebins, end_date)
-        record_by_day = {
-            'day': day,
-            'mean': mean[day],
-            'std': std[day],
-            'max': find_max_error(ebins)
-        }
-        stats_by_day.append(record_by_day)
-    return {
-        'source': models.SOURCE_TO_NAME[source],
-        'mtype': mtype,
-        'stats_by_day': stats_by_day,
-        'start_date': start_date,
-        'end_date': end_date
-        }
 
 
 def main():
