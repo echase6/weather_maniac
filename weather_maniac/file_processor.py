@@ -4,14 +4,14 @@ from os import listdir, rename
 from os.path import getsize, isfile, join
 from . import logic
 from . import models
+from . import settings
 from bs4 import BeautifulSoup
 import json
 import csv
 import datetime
 import re
 
-
-root_path = 'C:/Users/Eric/Desktop/Weatherman/'
+root_path = settings.BASE_DIR + '/rawdatafiles/'
 container_path = root_path + 'Reduced_Data/'
 api_data_path = root_path + 'API_Data/'
 api_arch_path = root_path + 'API_Arch/'
