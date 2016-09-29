@@ -1,17 +1,8 @@
 
 main {
   display: flex;
-  /*flex-direction: column;*/
   flex-flow: row wrap;
 }
-
-body {
-  /*background-image: "{% static 'weather_maniac/background.jpg' %}";*/
-  background-image: url("c:/users/echase/weather_maniac/weather_maniac/static/weather_maniac/background.jpg");
-  background-size: cover;
-
-}
-
 
 table {
   max-width: 800px;
@@ -22,13 +13,14 @@ caption {
   caption-side: top;
 }
 
-td:nth-child(even) {background-color: #f2f2f2}
+td:nth-child(even) {
+  background-color: #f2f2f2
+}
 
 table, td, th {
     border: 1px solid black;
     padding: 5px;
     text-align: center;
-    /*border-collapse: collapse;*/
 }
 
 td {
