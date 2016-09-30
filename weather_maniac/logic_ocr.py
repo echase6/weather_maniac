@@ -1,6 +1,6 @@
 """Weather Maniac optical character recognition functions."""
 
-from PIL import Image, ImageOps, ImageEnhance, ImageFilter
+from PIL import Image, ImageOps, ImageFilter
 import subprocess
 import io
 import re
@@ -90,13 +90,14 @@ def day_crop_dim(day_num):
 def crop_enhance_item(img, box):
     """Crop out and enhance an item."""
     small_img = img.crop(box)
-    small_img.show()
+    # small_img.show()
     small_img.load()
-    small_bw_img = ImageEnhance.Color(small_img).enhance(0)
+    small_bw_img = ImageOps.grayscale(small_img)
+    # small_bw_img.show()
     small_bw_img = small_bw_img.point(lambda i: 255 if i > 128 else 0)
     small_bw_img = small_bw_img.filter(ImageFilter.MinFilter(3))
+    small_bw_img.show()
     pad_img = ImageOps.expand(small_bw_img, border=20, fill='black')
-    pad_img.show()
     return pad_img
 
 
@@ -149,6 +150,14 @@ def day_string_to_day_in_advance(day_string, day_num, first_day_num, predict_dow
     return day_in_adv
 
 
+def process_item(img, box):
+    """Process the day, max or min temp item."""
+    pad_img = crop_enhance_item(img, box)
+    pad_jpg = get_jpg_bytes(pad_img)
+    tess_string = call_tesseract(pad_jpg)
+    return tess_string
+
+
 def process_image(img_file, csv_file):
     """Main function to process a 7-day forecast image.
 
@@ -162,7 +171,7 @@ def process_image(img_file, csv_file):
        -- Repeat the above steps for Max temp, and for Min temp
     """
     img = Image.open(img_file)
-    img.show()
+    # img.show()
     print('Processing: {}'.format(img_file))
     predict_date = DATE_RE.search(img_file).group(0)
     predict_dow = logic.get_date(predict_date).weekday()
@@ -170,46 +179,22 @@ def process_image(img_file, csv_file):
     first_day_num = 10  # Make sure the first day is read, or make data garbage.
     for day_num in range(2):
         box = day_crop_dim(day_num)
-        pad_img = crop_enhance_item(img, box)
-        pad_jpg = get_jpg_bytes(pad_img)
-        day_string = call_tesseract(pad_jpg)
-        day_string = clean_day_results(day_string)
+        tess_string = process_item(img, box)
+        day_string = clean_day_results(tess_string)
         day_in_adv = day_string_to_day_in_advance(day_string, day_num,
                                                   first_day_num, predict_dow)
         row_list.append(day_in_adv)
 
         box = max_crop_dim(day_num)
-        pad_img = crop_enhance_item(img, box)
-        output = io.BytesIO()
-        pad_img.save(output, format='JPEG')
-        pad_jpg = output.getvalue()
-        output.close()
-        out_string = call_tesseract(pad_jpg)
-        max_string = clean_temp_results(out_string)
+        tess_string = process_item(img, box)
+        max_string = clean_temp_results(tess_string)
         row_list.append(max_string)
 
         box = min_crop_dim(day_num)
-        small_img = img.crop(box)
-        small_img.show()
-        small_img.load()
-        small_bw_img = ImageOps.grayscale(small_img)
-        small_bw_img = small_bw_img.point(lambda i: 255 if i > 128 else 0)
-        pad_img = ImageOps.expand(small_bw_img, border=20, fill='black')
-        small_bw_img.show()
-        output = io.BytesIO()
-        pad_img.save(output, format='JPEG')
-        pad_jpg = output.getvalue()
-        output.close()
-        out_string = call_tesseract(pad_jpg)
-        out_string= I_RE.sub('1', out_string)
-        out_string= O_RE.sub('0', out_string)
-        out_string= B_RE.sub('8', out_string)
-        out_string = ''.join(re.findall('\d+', out_string))
-        if TEMP_RE.search(out_string):
-            min_string = TEMP_RE.search(out_string).group(0)
-        else:
-            min_string = ''
+        tess_string = process_item(img, box)
+        min_string = clean_temp_results(tess_string)
         row_list.append(min_string)
+
         print('Day: {}, Max: {}, Min: {}'.format(day_string, max_string, min_string))
     with open(csv_file, 'a', newline='') as csvfile:
         csv_writer = csv.writer(csvfile, delimiter=',')

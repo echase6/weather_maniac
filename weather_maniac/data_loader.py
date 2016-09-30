@@ -110,9 +110,13 @@ def store_html_file(fcast_soup, today_str):
     """
     fcast_html_string = str(fcast_soup)
     file_name = html_arch_path + 'html_' + today_str + '.html'
-    with open(file_name, 'w') as f:
-        file = File(f)
-        file.write(fcast_html_string)
+    try:
+        with open(file_name, 'w') as f:
+            file = File(f)
+            file.write(fcast_html_string)
+    except FileNotFoundError as error:
+        print('{}: Likely {} does not exist'.format(error, html_arch_path))
+        print('Proceeding without data archiving...')
 
 
 def process_api_data(json_string, today_str):

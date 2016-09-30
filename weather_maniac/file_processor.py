@@ -127,24 +127,28 @@ def process_actual_csv_file(filename):
 
 def _process_jpeg_csv_row(row):
     """Convert the csv rows into saved model records."""
-    date = datetime.datetime.strptime(row[0], '%Y_%m_%d').date()
-    try:
-        act_temp_model = logic.get_actual(date, location, max_temp, min_temp)
-    except ValueError as error:
-        print(error)
-    else:
-        act_temp_model.save()
+    days_to_max_min = {}
+    for index in range(1, 20, 3):
+        if all([item != '' for item in row[index:index+3]]):
+            day_in_advance = int(row[index])
+            max_temp = int(row[index + 1])
+            min_temp = int(row[index + 2])
+            days_to_max_min[day_in_advance] = (max_temp, min_temp)
+    return days_to_max_min
 
 
 def process_jpeg_csv_file(filename):
     """Main function to extract forecast records from the .csv file and
        save the contents in an DayRecord.
     """
+    source = 'jpeg'
     with open(filename, newline='') as csvfile:
         csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in csv_reader:
             print(row)
-            _process_jpeg_csv_row(row)
+            predict_date = datetime.datetime.strptime(row[0], '%Y_%m_%d').date()
+            days_to_max_min = _process_jpeg_csv_row(row)
+            logic.process_days_to_max_min(days_to_max_min, predict_date, source)
 
 
 def move_file_to_archive(f, data_path, arch_path):
@@ -190,12 +194,14 @@ def process_jpeg_files():
     only_files = [f for f in listdir(jpeg_data_path)
                   if isfile(join(jpeg_data_path, f))]
     for f in only_files:
+        if f == 'thumbs.db':
+            continue
         date_string = date_re.search(f).group(0)
         print('processing JPEG {}'.format(date_string))
         if getsize(jpeg_data_path + f) > 10000:
-            logic_ocr.process_image(jpeg_data_path + f, 'C:/Users/Eric/weather_maniac/rawdatafiles/test.csv')
+            logic_ocr.process_image(jpeg_data_path + f, root_path + 'total.csv')
             # process_jpeg_file(html_data_path + f)
-            move_file_to_archive(f, jpeg_data_path, jpeg_arch_path)
+            # move_file_to_archive(f, jpeg_data_path, jpeg_arch_path)
 
 
 def process_actual_files():

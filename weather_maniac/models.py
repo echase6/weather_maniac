@@ -3,7 +3,7 @@
 from django.db import models
 import datetime
 
-SOURCES = ['html', 'api']
+SOURCES = ['html', 'api', 'jpeg']
 SOURCE_TO_LENGTH = {'html': 7, 'api': 5}
 SOURCE_TO_NAME = {'html': 'Service A', 'api': 'Service B'}
 TYPES = ['max', 'min']
