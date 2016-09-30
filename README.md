@@ -58,6 +58,10 @@ The website landing-page should be subsequently available at:
  
 
 ### Installation Steps:
+Note:  You will need a key file for **Weather Maniac** to run locally and
+get access to the services.  Contact me (post an issue on GitHub) to request 
+it.
+
 Clone the repository.  It will provide the code to run:
 
 `$ git clone https://github.com/echase6/weather_maniac`
@@ -77,5 +81,6 @@ Create a superuser account, which might come in handy later:
 Build the database from archived data:
 
 `$ python manage.py loaddata weather_maniac.json`
+
 
 
