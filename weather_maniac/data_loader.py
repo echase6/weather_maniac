@@ -48,9 +48,13 @@ def store_api_file(contents, today_str):
     The file repo has each file with the date+time encoded in the filename.
     """
     file_name = api_arch_path + 'api_' + today_str + '.json'
-    with open(file_name, 'w') as f:
-        file = File(f)
-        file.write(contents)
+    try:
+        with open(file_name, 'w') as f:
+            file = File(f)
+            file.write(contents)
+    except FileNotFoundError as error:
+        print('{}: Likely {} does not exist'.format(error, api_arch_path))
+        print('Proceeding without data archiving...')
 
 
 def get_data(source):
@@ -86,9 +90,13 @@ def store_jpg_file(contents, today_str):
     Since these are jpg files, they are stored as bytes.
     """
     file_name = screen_data_path + 'screen_' + today_str + '.jpg'
-    with open(file_name, 'wb') as f:
-        file = File(f)
-        file.write(contents)
+    try:
+        with open(file_name, 'wb') as f:
+            file = File(f)
+            file.write(contents)
+    except FileNotFoundError as error:
+        print('{}: Likely {} does not exist'.format(error, screen_data_path))
+        print('Proceeding without data archiving...')
 
 
 def archive_jpg_file():
@@ -110,9 +118,13 @@ def store_html_file(fcast_soup, today_str):
     """
     fcast_html_string = str(fcast_soup)
     file_name = html_arch_path + 'html_' + today_str + '.html'
-    with open(file_name, 'w') as f:
-        file = File(f)
-        file.write(fcast_html_string)
+    try:
+        with open(file_name, 'w') as f:
+            file = File(f)
+            file.write(fcast_html_string)
+    except FileNotFoundError as error:
+        print('{}: Likely {} does not exist'.format(error, html_arch_path))
+        print('Proceeding without data archiving...')
 
 
 def process_api_data(json_string, today_str):
@@ -198,8 +210,12 @@ def store_meas_file(meas_soup, today_str):
     """
     meas_html_string = str(meas_soup)
     file_name = actual_arch_path + 'meas_' + today_str + '.html'
-    with open(file_name, 'w') as file:
-        file.write(meas_html_string)
+    try:
+        with open(file_name, 'w') as file:
+            file.write(meas_html_string)
+    except FileNotFoundError as error:
+        print('{}: Likely {} does not exist'.format(error, actual_arch_path))
+        print('Proceeding without data archiving...')
 
 
 def process_meas_data(daily_meas_soup, today_str):
