@@ -188,9 +188,7 @@ def process_html_files():
 
 
 def process_jpeg_files():
-    """Process the files loaded thought the web site (i.e., JPEG).
-
-    """
+    """Process the files loaded thought the web site (i.e., JPEG)."""
     only_files = [f for f in listdir(jpeg_data_path)
                   if isfile(join(jpeg_data_path, f))]
     for f in only_files:
@@ -198,8 +196,13 @@ def process_jpeg_files():
             continue
         date_string = date_re.search(f).group(0)
         print('processing JPEG {}'.format(date_string))
-        if getsize(jpeg_data_path + f) > 10000:
-            logic_ocr.process_image(jpeg_data_path + f, root_path + 'total.csv')
+        file_name = os.path.join(jpeg_data_path, f)
+        if getsize(file_name) > 10000:
+            row_list = logic_ocr.process_image(file_name, date_string)
+            csv_file = 'C:/Users/Eric/weather_maniac/rawdatafiles/total.csv'
+            with open(csv_file, 'a', newline='') as csvfile:
+                csv_writer = csv.writer(csvfile, delimiter=',')
+                csv_writer.writerow(row_list)
             # process_jpeg_file(html_data_path + f)
             # move_file_to_archive(f, jpeg_data_path, jpeg_arch_path)
 

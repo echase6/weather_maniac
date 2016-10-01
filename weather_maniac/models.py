@@ -4,8 +4,8 @@ from django.db import models
 import datetime
 
 SOURCES = ['html', 'api', 'jpeg']
-SOURCE_TO_LENGTH = {'html': 7, 'api': 5}
-SOURCE_TO_NAME = {'html': 'Service A', 'api': 'Service B'}
+SOURCE_TO_LENGTH = {'html': 7, 'api': 5, 'jpeg': 7}
+SOURCE_TO_NAME = {'html': 'Service A', 'api': 'Service B', 'jpeg': 'Service C'}
 TYPES = ['max', 'min']
 LOCATIONS = {'AURORA STATE AIRPORT OR US': 'AUR',
              'OREGON CITY OR US': 'OCO',
