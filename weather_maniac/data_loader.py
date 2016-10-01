@@ -25,12 +25,12 @@ from . import settings
 from . import logic_ocr
 from . import file_processor
 
-root_path = settings.BASE_DIR + '/rawdatafiles/'
-api_arch_path = root_path + 'API_Arch/'
-html_arch_path = root_path + 'HTML_Arch/'
-screen_data_path = root_path + 'Screen_Data/'
-screen_arch_path = root_path + 'Screen_Arch/'
-actual_arch_path = root_path + 'ACT_Arch/'
+root_path = os.path.join(settings.BASE_DIR, 'rawdatafiles')
+api_arch_path = os.path.join(root_path, 'API_Arch')
+html_arch_path = os.path.join(root_path, 'HTML_Arch')
+screen_data_path = os.path.join(root_path, 'Screen_Data')
+screen_arch_path = os.path.join(root_path, 'Screen_Arch')
+actual_arch_path = os.path.join(root_path, 'ACT_Arch')
 
 
 def get_api_data(api_key):
@@ -59,10 +59,7 @@ def store_api_file(contents, today_str):
 
 
 def get_data(source):
-    """Generic data gatherer, for either HTML or JPEG.
-
-    The source is hidden.
-    """
+    """Generic data gatherer, for either HTML or JPEG"""
     with urllib.request.urlopen(source) as f:
         file_contents = f.read()
     return file_contents
@@ -90,14 +87,14 @@ def store_jpeg_file(contents, today_str):
     The file repo has each file with the date+time encoded in the filename.
     Since these are jpg files, they are stored as bytes.
     """
-    file_name = screen_data_path + 'screen_' + today_str + '.jpg'
+    file_name = os.path.join(screen_data_path, ('screen_' + today_str + '.jpg'))
     with open(file_name, 'wb') as f:
         file = File(f)
         file.write(contents)
 
 
-def archive_jpg_file():
-    """JPG file archiver, since it is not run as part of an updater yet."""
+def archive_jpeg_file():
+    """JPG file archiver"""
     print('Archiving measured...')
     today_str = strftime('%Y_%m_%d')
     jpg_contents = get_data(settings.WM_SRC1_ID)
@@ -114,7 +111,7 @@ def store_html_file(fcast_soup, today_str):
     The file repo has each file with the date+time encoded in the filename.
     """
     fcast_html_string = str(fcast_soup)
-    file_name = html_arch_path + 'html_' + today_str + '.html'
+    file_name = os.path.join(html_arch_path, ('html_' + today_str + '.html'))
     try:
         with open(file_name, 'w') as f:
             file = File(f)
@@ -190,7 +187,8 @@ def process_jpeg_data(jpeg_image, today_str):
        are found for the time from midnight to midnight.
     """
     today_date = logic.get_date(today_str)
-    days_to_max_min = logic_ocr.process_image(jpeg_image, today_str)
+    row_list, predict_dow = logic_ocr.process_image(jpeg_image, today_str)
+    days_to_max_min = logic_ocr.conv_row_list_to_dict(row_list, predict_dow)
     logic.process_days_to_max_min(days_to_max_min, today_date, 'jpeg')
     return days_to_max_min
 
@@ -345,7 +343,8 @@ def update_jpeg_data():
         csv_file = os.path.join(file_processor.root_path, 'total.csv')
         with open(csv_file, 'a', newline='') as csvfile:
             csv_writer = csv.writer(csvfile, delimiter=',')
-            csv_writer.writerow(row_list.items())
+            csv_writer.writerow(row_list.items()
+                                # TODO: Convert dict into csv list
 
 
 def update_meas_data():
@@ -365,7 +364,7 @@ def main():
     update_meas_data()
     update_jpeg_data()
     if settings.WM_LOCAL:
-        archive_jpg_file()
+        archive_jpeg_file()
 
 
 if __name__ == '__main__':
