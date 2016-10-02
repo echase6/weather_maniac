@@ -1,28 +1,32 @@
 #!/usr/bin/env python
 
-from os import listdir, rename
-from os.path import getsize, isfile, join
-from . import logic
-from . import models
-from . import settings
-from . import logic_ocr
-from bs4 import BeautifulSoup
-import json
 import csv
 import datetime
+import json
+import os
 import re
+from os import listdir, rename
+from os.path import getsize, isfile, join
 
-root_path = settings.BASE_DIR + '/rawdatafiles/'
-container_path = root_path + 'Reduced_Data/'
-api_data_path = root_path + 'API_Data/'
-api_arch_path = root_path + 'API_Arch/'
-html_data_path = root_path + 'HTML_Data/'
-html_arch_path = root_path + 'HTML_Arch/'
-actual_data_path = root_path + 'ACT_Data/'
-actual_arch_path = root_path + 'ACT_Arch/'
-jpeg_data_path = root_path + 'Screen_Data/'
-jpeg_arch_path = root_path + 'Screen_Arch/'
-date_re = re.compile('20\d{2}_\d{2}_\d{2}')
+from bs4 import BeautifulSoup
+
+from . import logic
+from . import logic_ocr
+from . import models
+from . import settings
+
+ROOT_PATH = os.path.join(settings.BASE_DIR, 'rawdatafiles')
+CONTAINER_PATH = os.path.join(ROOT_PATH, 'Reduced_Data')
+API_DATA_PATH = os.path.join(ROOT_PATH, 'API_Data')
+API_ARCH_PATH = os.path.join(ROOT_PATH, 'API_Arch')
+HTML_DATA_PATH = os.path.join(ROOT_PATH, 'HTML_Data')
+HTML_ARCH_PATH = os.path.join(ROOT_PATH, 'HTML_Arch')
+ACTUAL_DATA_PATH = os.path.join(ROOT_PATH, 'ACT_Data')
+ACTUAL_ARCH_PATH = os.path.join(ROOT_PATH, 'ACT_Arch')
+SCREEN_DATA_PATH = os.path.join(ROOT_PATH, 'Screen_Data')
+SCREEN_ARCH_PATH = os.path.join(ROOT_PATH, 'Screen_Arch')
+
+DATA_RE = re.compile('20\d{2}_\d{2}_\d{2}')
 
 
 def _get_html_soup(file_name):
@@ -46,7 +50,7 @@ def process_html_file(file_name):
     The date the forecast applies to is normalized to PDT, and max/min temps
        are found for the time from midnight to midnight.
     """
-    predict_date = logic.get_date(date_re.search(file_name).group(0))
+    predict_date = logic.get_date(DATA_RE.search(file_name).group(0))
     html_soup = _get_html_soup(file_name)
     daily_forecasts = get_forecasts_from_html(html_soup)
     days_to_max_min = logic.get_retimed_fcsts_from_html(daily_forecasts,
@@ -72,13 +76,13 @@ def process_json_file(file_name):
     The date the forecast applies to is normalized to PDT, and max/min temps
        are found for the time from midnight to midnight.
     """
-    predict_date = logic.get_date(date_re.search(file_name).group(0))
+    predict_date = logic.get_date(DATA_RE.search(file_name).group(0))
     json_data = _get_json(file_name)
     days_to_max_min = logic.get_retimed_fcsts_from_json(json_data, predict_date)
     logic.process_days_to_max_min(days_to_max_min, predict_date, 'api')
 
 
-def process_jpeg_file(file_name):
+# def process_jpeg_file(file_name):
     """Main function to extract max and min temperatures from one API(json) file
         and save the contents to a DayRecord.
 
@@ -89,10 +93,11 @@ def process_jpeg_file(file_name):
     The date the forecast applies to is normalized to PDT, and max/min temps
        are found for the time from midnight to midnight.
     """
-    predict_date = logic.get_date(date_re.search(file_name).group(0))
-    json_data = _get_json(file_name)
-    days_to_max_min = logic.get_retimed_fcsts_from_json(json_data, predict_date)
-    logic.process_days_to_max_min(days_to_max_min, predict_date, 'api')
+    # predict_date = logic.get_date(DATA_RE.search(file_name).group(0))
+    # json_data = _get_json(file_name)
+    # days_to_max_min = logic.get_retimed_fcsts_from_json(json_data,
+    # predict_date)
+    # logic.process_days_to_max_min(days_to_max_min, predict_date, 'api')
 
 
 def _process_csv_row(row, max_temp_index, min_temp_index):
@@ -126,9 +131,11 @@ def process_actual_csv_file(filename):
 
 
 def _process_jpeg_csv_row(row):
-    """Convert the csv rows into saved model records."""
+    """Convert the csv rows into saved model records.
+
+    """
     days_to_max_min = {}
-    for index in range(1, 20, 3):
+    for index in range(1, 20, 3):  # TODO: make this aware of short rows
         if all([item != '' for item in row[index:index+3]]):
             day_in_advance = int(row[index])
             max_temp = int(row[index + 1])
@@ -153,7 +160,7 @@ def process_jpeg_csv_file(filename):
 
 def move_file_to_archive(f, data_path, arch_path):
     """Move the processed file to the archive, by renaming it."""
-    rename(data_path + f, arch_path + f)
+    rename(os.path.join(data_path, f), os.path.join(arch_path, f))
 
 
 def process_api_files():
@@ -161,14 +168,14 @@ def process_api_files():
 
     Comparison with 100B done to strip off partial files (normal: 15kB)
     """
-    only_files = [f for f in listdir(api_data_path)
-                  if isfile(join(api_data_path, f))]
+    only_files = [f for f in listdir(API_DATA_PATH)
+                  if isfile(os.path.join(API_DATA_PATH, f))]
     for f in only_files:
-        date_string = date_re.search(f).group(0)
+        date_string = DATA_RE.search(f).group(0)
         print('processing API {}'.format(date_string))
-        if getsize(api_data_path + f) > 100:
-            process_json_file(api_data_path + f)
-            move_file_to_archive(f, api_data_path, api_arch_path)
+        if getsize(os.path.join(API_DATA_PATH, f)) > 100:
+            process_json_file(API_DATA_PATH + f)
+            move_file_to_archive(f, API_DATA_PATH, API_ARCH_PATH)
 
 
 def process_html_files():
@@ -177,46 +184,46 @@ def process_html_files():
     Comparison with 10KB done to strip off partial files
       (original: 115kB, archived: 15kB)
     """
-    only_files = [f for f in listdir(html_data_path)
-                  if isfile(join(html_data_path, f))]
+    only_files = [f for f in listdir(HTML_DATA_PATH)
+                  if isfile(os.path.join(HTML_DATA_PATH, f))]
     for f in only_files:
-        date_string = date_re.search(f).group(0)
+        date_string = DATA_RE.search(f).group(0)
         print('processing HTML {}'.format(date_string))
-        if getsize(html_data_path + f) > 10000:
-            process_html_file(html_data_path + f)
-            move_file_to_archive(f, html_data_path, html_arch_path)
+        if getsize(os.path.join(HTML_DATA_PATH, f)) > 10000:
+            process_html_file(HTML_DATA_PATH + f)
+            move_file_to_archive(f, HTML_DATA_PATH, HTML_ARCH_PATH)
 
 
 def process_jpeg_files():
     """Process the files loaded thought the web site (i.e., JPEG)."""
-    only_files = [f for f in listdir(jpeg_data_path)
-                  if isfile(join(jpeg_data_path, f))]
+    only_files = [f for f in listdir(SCREEN_DATA_PATH)
+                  if isfile(os.path.join(SCREEN_DATA_PATH, f))]
     for f in only_files:
         if f == 'thumbs.db':
             continue
-        date_string = date_re.search(f).group(0)
+        date_string = DATA_RE.search(f).group(0)
         print('processing JPEG {}'.format(date_string))
-        file_name = os.path.join(jpeg_data_path, f)
+        file_name = os.path.join(SCREEN_DATA_PATH, f)
         if getsize(file_name) > 10000:
             row_list = logic_ocr.process_image(file_name, date_string)
-            csv_file = 'C:/Users/Eric/weather_maniac/rawdatafiles/total.csv'
+            csv_file = os.path.join(ROOT_PATH, 'total.csv')
             with open(csv_file, 'a', newline='') as csvfile:
                 csv_writer = csv.writer(csvfile, delimiter=',')
                 csv_writer.writerow(row_list)
-            # process_jpeg_file(html_data_path + f)
-            # move_file_to_archive(f, jpeg_data_path, jpeg_arch_path)
+            # process_jpeg_file(HTML_DATA_PATH + f)
+            # move_file_to_archive(f, SCREEN_DATA_PATH, SCREEN_ARCH_PATH)
 
 
 def process_actual_files():
     """Process the files loaded thought the web site as JPG."""
-    only_files = [f for f in listdir(actual_data_path)
-                  if isfile(join(actual_data_path, f))]
+    only_files = [f for f in listdir(ACTUAL_DATA_PATH)
+                  if isfile(join(ACTUAL_DATA_PATH, f))]
     for f in only_files:
         f_string = f
         print('processing Actuals {}'.format(f_string))
-        if getsize(actual_data_path + f) > 10:
-            process_actual_csv_file(actual_data_path + f)
-            move_file_to_archive(f, actual_data_path, actual_arch_path)
+        if getsize(ACTUAL_DATA_PATH + f) > 10:
+            process_actual_csv_file(ACTUAL_DATA_PATH + f)
+            move_file_to_archive(f, ACTUAL_DATA_PATH, ACTUAL_ARCH_PATH)
 
 
 def main():

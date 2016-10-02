@@ -25,13 +25,6 @@ from . import settings
 from . import logic_ocr
 from . import file_processor
 
-root_path = os.path.join(settings.BASE_DIR, 'rawdatafiles')
-api_arch_path = os.path.join(root_path, 'API_Arch')
-html_arch_path = os.path.join(root_path, 'HTML_Arch')
-screen_data_path = os.path.join(root_path, 'Screen_Data')
-screen_arch_path = os.path.join(root_path, 'Screen_Arch')
-actual_arch_path = os.path.join(root_path, 'ACT_Arch')
-
 
 def get_api_data(api_key):
     """API data gatherer.
@@ -52,7 +45,8 @@ def store_api_file(contents, today_str):
       processed immediately and not being queued for processing.
     The file repo has each file with the date+time encoded in the filename.
     """
-    file_name = api_arch_path + 'api_' + today_str + '.json'
+    file_name = os.path.join(file_processor.API_ARCH_PATH,
+                             ('api_' + today_str + '.json'))
     with open(file_name, 'w') as f:
         file = File(f)
         file.write(contents)
@@ -87,7 +81,8 @@ def store_jpeg_file(contents, today_str):
     The file repo has each file with the date+time encoded in the filename.
     Since these are jpg files, they are stored as bytes.
     """
-    file_name = os.path.join(screen_data_path, ('screen_' + today_str + '.jpg'))
+    file_name = os.path.join(file_processor.SCREEN_DATA_PATH,
+                             ('screen_' + today_str + '.jpg'))
     with open(file_name, 'wb') as f:
         file = File(f)
         file.write(contents)
@@ -111,13 +106,15 @@ def store_html_file(fcast_soup, today_str):
     The file repo has each file with the date+time encoded in the filename.
     """
     fcast_html_string = str(fcast_soup)
-    file_name = os.path.join(html_arch_path, ('html_' + today_str + '.html'))
+    file_name = os.path.join(file_processor.HTML_ARCH_PATH,
+                             ('html_' + today_str + '.html'))
     try:
         with open(file_name, 'w') as f:
             file = File(f)
             file.write(fcast_html_string)
     except FileNotFoundError as error:
-        print('{}: Likely {} does not exist'.format(error, html_arch_path))
+        print('{}: Likely {} does not exist'.format(
+            error, file_processor.HTML_ARCH_PATH))
         print('Proceeding without data archiving...')
 
 
@@ -193,6 +190,20 @@ def process_jpeg_data(jpeg_image, today_str):
     return days_to_max_min
 
 
+def conv_dict_to_csv_list(days_to_max_min):
+    """Convert days-to-max-min dict to list for csv writing.
+
+    >>> conv_dict_to_csv_list({'predict': '2016_09_22', 0: (78, 54),
+    ... 1: (76, 44)})
+    ['2016_09_22', 0, 78, 54, 1, 76, 44]
+    """
+    outlist = [days_to_max_min['predict']]
+    for idx in range(models.SOURCE_TO_LENGTH['jpeg']):
+        if idx in days_to_max_min:
+            outlist += [idx, days_to_max_min[idx][0], days_to_max_min[idx][1]]
+    return outlist
+
+
 def extract_meas_soup(html_data):
     """Extract the forecast html soup item for subsequent searching.
 
@@ -217,7 +228,8 @@ def store_meas_file(meas_soup, today_str):
     The file repo has each file with the date+time encoded in the filename.
     """
     meas_html_string = str(meas_soup)
-    file_name = actual_arch_path + 'meas_' + today_str + '.html'
+    file_name = os.path.join(file_processor.ACTUAL_ARCH_PATH,
+                             ('meas_' + today_str + '.html'))
     with open(file_name, 'w') as file:
         file.write(meas_html_string)
 
@@ -292,9 +304,9 @@ def get_forecast(source, mtype, today):
     for day in range(models.SOURCE_TO_LENGTH[source]):
         try:
             record = [models.DayRecord.objects.get(
-            source=source,
-            day_in_advance=day,
-            date_reference=today + datetime.timedelta(day)
+                source=source,
+                day_in_advance=day,
+                date_reference=today + datetime.timedelta(day)
             )]
         except models.DayRecord.DoesNotExist:
             print('Forecast point missing.')
@@ -336,15 +348,15 @@ def update_jpeg_data():
     print('Updating jpeg...')
     today_str = strftime('%Y_%m_%d')
     jpeg_image = get_data(settings.WM_SRC1_ID)
-    row_list = process_jpeg_data(jpeg_image, today_str)
+    days_to_max_min = process_jpeg_data(jpeg_image, today_str)
     if settings.WM_LOCAL:
         store_jpeg_file(jpeg_image, today_str)
-        row_list['predict'] = today_str
-        csv_file = os.path.join(file_processor.root_path, 'total.csv')
+        days_to_max_min['predict'] = today_str
+        csv_file = os.path.join(file_processor.ROOT_PATH, 'total.csv')
         with open(csv_file, 'a', newline='') as csvfile:
             csv_writer = csv.writer(csvfile, delimiter=',')
-            csv_writer.writerow(row_list.items()
-                                # TODO: Convert dict into csv list
+            csv_list = conv_dict_to_csv_list(days_to_max_min)
+            csv_writer.writerow(csv_list)
 
 
 def update_meas_data():
