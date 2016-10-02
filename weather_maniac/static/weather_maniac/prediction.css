@@ -11,6 +11,7 @@ main > form {
   border-color: #000000;*/
   padding: 10px;
   align-items: baseline;
+  min-width: 100px;
 }
 
 #graph {
