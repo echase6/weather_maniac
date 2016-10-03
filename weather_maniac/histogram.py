@@ -6,12 +6,10 @@ These functions deal with:
 
 import datetime
 import math
-import random
+
 from django.db.models import Max, Min
 
-from . import data_loader
 from . import models
-from . import utilities
 
 
 def create_histogram(source, location, mtype, day_in_advance):
@@ -158,18 +156,16 @@ def populate_all_histograms():
     No forecast matching actual record for 2016-07-12
     >>> for ebin in models.ErrorBin.objects.all():
     ...   print(str(ebin))
+    ...   # doctest: +ELLIPSIS
     html, max, PDX, 0, -2, 12, 2016-07-01, 2016-07-12
-    html, max, PDX, 1, -1, 12, 2016-07-01, 2016-07-12
-    html, max, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
-    html, min, PDX, 0, 2, 12, 2016-07-01, 2016-07-12
-    html, min, PDX, 1, 1, 12, 2016-07-01, 2016-07-12
+    ...
     html, min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
     api, max, PDX, 0, -2, 12, 2016-07-01, 2016-07-12
-    api, max, PDX, 1, -1, 12, 2016-07-01, 2016-07-12
-    api, max, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
-    api, min, PDX, 0, 2, 12, 2016-07-01, 2016-07-12
-    api, min, PDX, 1, 1, 12, 2016-07-01, 2016-07-12
+    ...
     api, min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
+    jpeg, max, PDX, 0, -2, 12, 2016-07-01, 2016-07-12
+    ...
+    jpeg, min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
     """
     for source in models.SOURCES:
         for mtype in models.TYPES:

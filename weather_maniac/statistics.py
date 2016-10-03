@@ -8,12 +8,13 @@ These functions deal with:
 import datetime
 import math
 import random
+
 from django.db.models import Max, Min
 
 from . import data_loader
+from . import histogram
 from . import models
 from . import utilities
-from . import histogram
 
 
 def get_statistics_per_day(bins):
@@ -61,6 +62,29 @@ def get_statistics(source, location, mtype):
         bins = histogram.get_all_bins(source, location, mtype, day)
         means[day], stds[day] = get_statistics_per_day(bins)
     return means, stds
+
+
+def get_worst_prediction(source, location, mtype, day_in_advance):
+    """  """
+    histo = histogram.get_histogram(source, location, mtype, day_in_advance)
+    ebins = histogram.get_all_bins(source, location, mtype, day_in_advance)
+    worst_error = find_max_error(ebins)
+    ebin_day = histo.errorbin_set.get(error=worst_error).end_date
+    act = models.ActualDayRecord.objects.get(
+        date_meas=ebin_day,
+        location=location
+    )
+    predict = models.DayRecord.objects.get(
+        source=source,
+        day_in_advance=day_in_advance,
+        date_reference=ebin_day
+    )
+    print('Date: {}, Actual Max: {}, Predict Max: {} on {}'.format(
+        ebin_day, act.max_temp, predict.max_temp,
+        ebin_day - datetime.timedelta(day_in_advance)))
+    print('Date: {}, Actual Min: {}, Predict Min: {} on {}'.format(
+        ebin_day, act.min_temp, predict.min_temp,
+        ebin_day - datetime.timedelta(day_in_advance)))
 
 
 def obfuscate_forecast(forecast, start_date):
@@ -212,7 +236,9 @@ def make_stats_json(source, mtype):
 
 
 def main():
-    pass
+    source = 'api'
+    for day_in_adv in range(models.SOURCE_TO_LENGTH[source]):
+        get_worst_prediction(source, 'PDX', 'max', day_in_adv)
 
 if __name__ == '__main__()':
     main()

@@ -3,6 +3,7 @@ main > form {
   flex-direction: column;
   padding: 10px;
   align-items: baseline;
+  min-width: 100px;
 }
 
 #graph {

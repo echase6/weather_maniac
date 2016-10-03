@@ -11,6 +11,8 @@ The main() function will make all of the necessary calls.
 import datetime
 import json
 import re
+import os
+import csv
 import urllib.request
 from time import strftime
 
@@ -20,12 +22,8 @@ from django.core.files import File
 from . import logic
 from . import models
 from . import settings
-
-root_path = settings.BASE_DIR + '/rawdatafiles/'
-api_arch_path = root_path + 'API_Arch/'
-html_arch_path = root_path + 'HTML_Arch/'
-screen_data_path = root_path + 'Screen_Data/'
-actual_arch_path = root_path + 'ACT_Arch/'
+from . import logic_ocr
+from . import file_processor
 
 
 def get_api_data(api_key):
@@ -47,21 +45,20 @@ def store_api_file(contents, today_str):
       processed immediately and not being queued for processing.
     The file repo has each file with the date+time encoded in the filename.
     """
-    file_name = api_arch_path + 'api_' + today_str + '.json'
+    file_name = os.path.join(file_processor.API_ARCH_PATH,
+                             ('api_' + today_str + '.json'))
     try:
         with open(file_name, 'w') as f:
             file = File(f)
             file.write(contents)
     except FileNotFoundError as error:
-        print('{}: Likely {} does not exist'.format(error, api_arch_path))
+        print('{}: Likely {} does not exist'.format(
+            error, file_processor.API_ARCH_PATH))
         print('Proceeding without data archiving...')
 
 
 def get_data(source):
-    """Generic data gatherer, for either HTML or JPG.
-
-    The source is hidden.
-    """
+    """Generic data gatherer, for either HTML or JPEG"""
     with urllib.request.urlopen(source) as f:
         file_contents = f.read()
     return file_contents
@@ -81,7 +78,7 @@ def extract_fcst_soup(html_data):
     return html_soup.find_all('div', class_='weather-box daily-forecast')
 
 
-def store_jpg_file(contents, today_str):
+def store_jpeg_file(contents, today_str):
     """JPG storing function.
 
     The file is stored directly in the Data/ directory since the processor
@@ -89,22 +86,24 @@ def store_jpg_file(contents, today_str):
     The file repo has each file with the date+time encoded in the filename.
     Since these are jpg files, they are stored as bytes.
     """
-    file_name = screen_data_path + 'screen_' + today_str + '.jpg'
+    file_name = os.path.join(file_processor.SCREEN_DATA_PATH,
+                             ('screen_' + today_str + '.jpg'))
     try:
         with open(file_name, 'wb') as f:
             file = File(f)
             file.write(contents)
     except FileNotFoundError as error:
-        print('{}: Likely {} does not exist'.format(error, screen_data_path))
+        print('{}: Likely {} does not exist'.format(
+            error, file_processor.SCREEN_DATA_PATH))
         print('Proceeding without data archiving...')
 
 
-def archive_jpg_file():
-    """JPG file archiver, since it is not run as part of an updater yet."""
+def archive_jpeg_file():
+    """JPG file archiver"""
     print('Archiving measured...')
     today_str = strftime('%Y_%m_%d')
     jpg_contents = get_data(settings.WM_SRC1_ID)
-    store_jpg_file(jpg_contents, today_str)
+    store_jpeg_file(jpg_contents, today_str)
 
 
 def store_html_file(fcast_soup, today_str):
@@ -117,13 +116,15 @@ def store_html_file(fcast_soup, today_str):
     The file repo has each file with the date+time encoded in the filename.
     """
     fcast_html_string = str(fcast_soup)
-    file_name = html_arch_path + 'html_' + today_str + '.html'
+    file_name = os.path.join(file_processor.HTML_ARCH_PATH,
+                             ('html_' + today_str + '.html'))
     try:
         with open(file_name, 'w') as f:
             file = File(f)
             file.write(fcast_html_string)
     except FileNotFoundError as error:
-        print('{}: Likely {} does not exist'.format(error, html_arch_path))
+        print('{}: Likely {} does not exist'.format(
+            error, file_processor.HTML_ARCH_PATH))
         print('Proceeding without data archiving...')
 
 
@@ -185,6 +186,34 @@ def process_html_data(daily_forecasts, today_str):
     logic.process_days_to_max_min(days_to_max_min, today_date, 'html')
 
 
+def process_jpeg_data(jpeg_image, today_str):
+    """Main function to extract max and min temperatures from one JPEG file
+        and save the contents to a DayRecord.
+
+    The date the forecast applies to is normalized to PDT, and max/min temps
+       are found for the time from midnight to midnight.
+    """
+    today_date = logic.get_date(today_str)
+    row_list, predict_dow = logic_ocr.process_image(jpeg_image, today_str)
+    days_to_max_min = logic_ocr.conv_row_list_to_dict(row_list, predict_dow)
+    logic.process_days_to_max_min(days_to_max_min, today_date, 'jpeg')
+    return days_to_max_min
+
+
+def conv_dict_to_csv_list(days_to_max_min):
+    """Convert days-to-max-min dict to list for csv writing.
+
+    >>> conv_dict_to_csv_list({'predict': '2016_09_22', 0: (78, 54),
+    ... 1: (76, 44)})
+    ['2016_09_22', 0, 78, 54, 1, 76, 44]
+    """
+    outlist = [days_to_max_min['predict']]
+    for idx in range(models.SOURCE_TO_LENGTH['jpeg']):
+        if idx in days_to_max_min:
+            outlist += [idx, days_to_max_min[idx][0], days_to_max_min[idx][1]]
+    return outlist
+
+
 def extract_meas_soup(html_data):
     """Extract the forecast html soup item for subsequent searching.
 
@@ -209,12 +238,14 @@ def store_meas_file(meas_soup, today_str):
     The file repo has each file with the date+time encoded in the filename.
     """
     meas_html_string = str(meas_soup)
-    file_name = actual_arch_path + 'meas_' + today_str + '.html'
+    file_name = os.path.join(file_processor.ACTUAL_ARCH_PATH,
+                             ('meas_' + today_str + '.html'))
     try:
         with open(file_name, 'w') as file:
             file.write(meas_html_string)
     except FileNotFoundError as error:
-        print('{}: Likely {} does not exist'.format(error, actual_arch_path))
+        print('{}: Likely {} does not exist'.format(
+            error, file_processor.ACTUAL_ARCH_PATH))
         print('Proceeding without data archiving...')
 
 
@@ -250,16 +281,21 @@ def process_meas_data(daily_meas_soup, today_str):
 
 
 def load_forecast_record(source, today):
-    """Ensure that the forecast record is current."""
+    """Ensure that the forecast record is current.
+
+    Look for tomorrow's record since sometimes today is missing a min temp.
+    """
+    tomorrow = today + datetime.timedelta(1)
     try:
         models.DayRecord.objects.get(
             source=source,
-            date_reference=today,
-            day_in_advance=0
+            date_reference=tomorrow,
+            day_in_advance=1
         )
     except models.DayRecord.DoesNotExist:
         update_html_data()
         update_api_data()
+        update_jpeg_data()
 
 
 def get_forecast(source, mtype, today):
@@ -281,11 +317,16 @@ def get_forecast(source, mtype, today):
     load_forecast_record(source, today)
     records = []
     for day in range(models.SOURCE_TO_LENGTH[source]):
-        records += [models.DayRecord.objects.get(
-            source=source,
-            day_in_advance=day,
-            date_reference=today + datetime.timedelta(day)
-        )]
+        try:
+            record = [models.DayRecord.objects.get(
+                source=source,
+                day_in_advance=day,
+                date_reference=today + datetime.timedelta(day)
+            )]
+        except models.DayRecord.DoesNotExist:
+            print('Forecast point missing.')
+        else:
+            records += record
     if mtype == 'max':
         days_to_temp = {record.day_in_advance: record.max_temp
                         for record in records}
@@ -317,6 +358,22 @@ def update_api_data():
     process_api_data(api_string, today_str)
 
 
+def update_jpeg_data():
+    """Main function to update and archive the web-site based forecasts."""
+    print('Updating jpeg...')
+    today_str = strftime('%Y_%m_%d')
+    jpeg_image = get_data(settings.WM_SRC1_ID)
+    days_to_max_min = process_jpeg_data(jpeg_image, today_str)
+    if settings.WM_LOCAL:
+        store_jpeg_file(jpeg_image, today_str)
+        days_to_max_min['predict'] = today_str
+        csv_file = os.path.join(file_processor.ROOT_PATH, 'total.csv')
+        with open(csv_file, 'a', newline='') as csvfile:
+            csv_writer = csv.writer(csvfile, delimiter=',')
+            csv_list = conv_dict_to_csv_list(days_to_max_min)
+            csv_writer.writerow(csv_list)
+
+
 def update_meas_data():
     """Main function to update and archive the measured temps."""
     print('Updating measured...')
@@ -332,8 +389,9 @@ def main():
     update_html_data()
     update_api_data()
     update_meas_data()
+    update_jpeg_data()
     if settings.WM_LOCAL:
-        archive_jpg_file()
+        archive_jpeg_file()
 
 
 if __name__ == '__main__':
