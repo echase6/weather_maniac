@@ -59,8 +59,6 @@ def crop_enhance_item(img, box, feature):
     small_bw_img = small_bw_img.point(lambda i: 255 if i > 128 else 0)
     if feature != 'day' and feature != 'min':
         small_bw_img = small_bw_img.filter(ImageFilter.MinFilter(3))
-    if feature == 'min':
-        small_bw_img.show()
     pad_img = ImageOps.expand(small_bw_img, border=20, fill='black')
     return pad_img
 

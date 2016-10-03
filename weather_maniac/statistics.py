@@ -8,13 +8,13 @@ These functions deal with:
 import datetime
 import math
 import random
+
 from django.db.models import Max, Min
 
 from . import data_loader
+from . import histogram
 from . import models
 from . import utilities
-from . import histogram
-from . import logic
 
 
 def get_statistics_per_day(bins):
@@ -79,9 +79,12 @@ def get_worst_prediction(source, location, mtype, day_in_advance):
         day_in_advance=day_in_advance,
         date_reference=ebin_day
     )
-    print('Date: {}, Actual Max: {}, Predict Max: {} on {}'.format(ebin_day, act.max_temp, predict.max_temp, ebin_day - datetime.timedelta(day_in_advance)))
-    print('Date: {}, Actual Min: {}, Predict Min: {} on {}'.format(ebin_day, act.min_temp, predict.min_temp, ebin_day - datetime.timedelta(day_in_advance)))
-
+    print('Date: {}, Actual Max: {}, Predict Max: {} on {}'.format(
+        ebin_day, act.max_temp, predict.max_temp,
+        ebin_day - datetime.timedelta(day_in_advance)))
+    print('Date: {}, Actual Min: {}, Predict Min: {} on {}'.format(
+        ebin_day, act.min_temp, predict.min_temp,
+        ebin_day - datetime.timedelta(day_in_advance)))
 
 
 def obfuscate_forecast(forecast, start_date):
