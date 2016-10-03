@@ -47,9 +47,14 @@ def store_api_file(contents, today_str):
     """
     file_name = os.path.join(file_processor.API_ARCH_PATH,
                              ('api_' + today_str + '.json'))
-    with open(file_name, 'w') as f:
-        file = File(f)
-        file.write(contents)
+    try:
+        with open(file_name, 'w') as f:
+            file = File(f)
+            file.write(contents)
+    except FileNotFoundError as error:
+        print('{}: Likely {} does not exist'.format(
+            error, file_processor.API_ARCH_PATH))
+        print('Proceeding without data archiving...')
 
 
 def get_data(source):
@@ -83,9 +88,14 @@ def store_jpeg_file(contents, today_str):
     """
     file_name = os.path.join(file_processor.SCREEN_DATA_PATH,
                              ('screen_' + today_str + '.jpg'))
-    with open(file_name, 'wb') as f:
-        file = File(f)
-        file.write(contents)
+    try:
+        with open(file_name, 'wb') as f:
+            file = File(f)
+            file.write(contents)
+    except FileNotFoundError as error:
+        print('{}: Likely {} does not exist'.format(
+            error, file_processor.SCREEN_DATA_PATH))
+        print('Proceeding without data archiving...')
 
 
 def archive_jpeg_file():
@@ -230,8 +240,13 @@ def store_meas_file(meas_soup, today_str):
     meas_html_string = str(meas_soup)
     file_name = os.path.join(file_processor.ACTUAL_ARCH_PATH,
                              ('meas_' + today_str + '.html'))
-    with open(file_name, 'w') as file:
-        file.write(meas_html_string)
+    try:
+        with open(file_name, 'w') as file:
+            file.write(meas_html_string)
+    except FileNotFoundError as error:
+        print('{}: Likely {} does not exist'.format(
+            error, file_processor.ACTUAL_ARCH_PATH))
+        print('Proceeding without data archiving...')
 
 
 def process_meas_data(daily_meas_soup, today_str):
