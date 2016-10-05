@@ -4,8 +4,13 @@ main {
   flex-flow: row wrap;
 }
 
+div {
+  flex; 1;
+  min-width: 400px;
+}
+
 table {
-  max-width: 800px;
+  max-width: 960px;
   margin: 20px;
 }
 

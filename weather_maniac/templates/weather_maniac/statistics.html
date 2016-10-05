@@ -32,6 +32,7 @@
     </nav>
     <main>
         {% for sourceReq in stats %}
+        <div>
         <table>
           <caption>
             Forecaster: {{ sourceReq.source }}, {{ sourceReq.mtype}} daily temp.
@@ -60,7 +61,8 @@
             <td>{{ dayReq.max|floatformat:0 }}&deg</td>
             {% endfor %}
           </tr>
-        </table><br />
+        </table>
+        </div>
         {% endfor %}
       </main>
     <footer>
