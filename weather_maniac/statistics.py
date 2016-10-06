@@ -37,7 +37,7 @@ def get_statistics_per_day(bins):
     return mean, std
 
 
-def get_statistics(source, location, mtype):
+def get_statistics(source_str, location, mtype):
     """Main function to collect statistics for application to the forecast
          points on the web-site.
 
@@ -51,15 +51,15 @@ def get_statistics(source, location, mtype):
     """
     means = {}
     stds = {}
-    for day in range(models.SOURCE_TO_LENGTH[source]):
-        latest_bin = histogram.get_latest_histogram_bin(source, location,
+    for day in range(models.SOURCES[source_str]['length']):
+        latest_bin = histogram.get_latest_histogram_bin(source_str, location,
                                                         mtype, day)
-        latest_day = histogram.get_latest_matching_day(source, location,
+        latest_day = histogram.get_latest_matching_day(source_str, location,
                                                        day, latest_bin)
         if latest_day > latest_bin:
-            histogram.populate_histogram(source, location, mtype,
+            histogram.populate_histogram(source_str, location, mtype,
                                          day, latest_bin)
-        bins = histogram.get_all_bins(source, location, mtype, day)
+        bins = histogram.get_all_bins(source_str, location, mtype, day)
         means[day], stds[day] = get_statistics_per_day(bins)
     return means, stds
 
@@ -100,7 +100,7 @@ def obfuscate_forecast(forecast, start_date):
     return forecast
 
 
-def make_json_of_forecast(forecast, means, stds, source, start_date):
+def make_json_of_forecast(forecast, means, stds, source_strt, start_date):
     """Create the JSON object from the forecast and statistics data.
 
     >>> forecast = {0: 50, 1: 51, 2: 52, 3: 53, 4: 54}
@@ -123,7 +123,7 @@ def make_json_of_forecast(forecast, means, stds, source, start_date):
         ('pct75', 53.674), ('pct95', 54.96), ('source_raw', 54)]
     """
     json = []
-    for ddate in range(models.SOURCE_TO_LENGTH[source]):
+    for ddate in range(models.SOURCES[source_strt]['length']):
         if ddate in forecast:
             json.append({
                 'date': str(start_date + datetime.timedelta(ddate))[:10],
@@ -192,7 +192,7 @@ def find_max_error(ebins):
     return utilities.find_abs_largest([max_pos_error, max_neg_error])
 
 
-def make_stats_json(source, mtype):
+def make_stats_json(source_str, mtype):
     """Get the stats JSON
 
     >>> from . import load_test_records
@@ -201,7 +201,7 @@ def make_stats_json(source, mtype):
     >>> sorted(json.items())
     ...   # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
     [('end_date', datetime.date(2016, 8, 1)), ('mtype', 'max'),
-    ('source', 'Service B'), ('start_date', datetime.date(2016, 6, 1)),
+    ('source_str', 'Service B'), ('start_date', datetime.date(2016, 6, 1)),
     ('stats_by_day', [...])]
     >>> for day in json['stats_by_day']:
     ...   sorted(day.items())
@@ -214,9 +214,9 @@ def make_stats_json(source, mtype):
     end_date = datetime.date(2016, 5, 1)
     start_date = datetime.date(2116, 6, 1)
     stats_by_day = []
-    mean, std = get_statistics(source, 'PDX', mtype)
-    for day in range(models.SOURCE_TO_LENGTH[source]):
-        ebins = histogram.get_all_bins(source, 'PDX', mtype, day)
+    mean, std = get_statistics(source_str, 'PDX', mtype)
+    for day in range(models.SOURCES[source_str]['length']):
+        ebins = histogram.get_all_bins(source_str, 'PDX', mtype, day)
         start_date = get_start_bin_date(ebins, start_date)
         end_date = get_end_bin_date(ebins, end_date)
         record_by_day = {
@@ -227,7 +227,7 @@ def make_stats_json(source, mtype):
         }
         stats_by_day.append(record_by_day)
     return {
-        'source': models.SOURCE_TO_NAME[source],
+        'source_str': models.SOURCES[source_str]['alias'],
         'mtype': mtype,
         'stats_by_day': stats_by_day,
         'start_date': start_date,
@@ -236,9 +236,9 @@ def make_stats_json(source, mtype):
 
 
 def main():
-    source = 'api'
-    for day_in_adv in range(models.SOURCE_TO_LENGTH[source]):
-        get_worst_prediction(source, 'PDX', 'max', day_in_adv)
+    source_str = 'api'
+    for day_in_adv in range(models.SOURCES[source_str]['length']):
+        get_worst_prediction(source_str, 'PDX', 'max', day_in_adv)
 
 if __name__ == '__main__()':
     main()

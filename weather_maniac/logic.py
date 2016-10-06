@@ -278,4 +278,3 @@ def get_actual(date, location, max_temp, min_temp):
             min_temp=min_temp
         )
     return act
-

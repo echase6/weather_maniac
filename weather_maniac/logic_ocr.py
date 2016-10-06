@@ -1,6 +1,5 @@
 """Weather Maniac optical character recognition functions."""
 
-import csv
 import io
 import os
 import re
@@ -8,8 +7,6 @@ import subprocess
 
 from PIL import Image, ImageOps, ImageFilter
 
-from . import data_loader
-from . import file_processor
 from . import logic
 from . import models
 
@@ -18,32 +15,32 @@ TESSERACT_EXE_NAME = r"c:/users/eric/desktop/weatherman/tesseract.exe"
 WEEKDAY_TO_NUM = {
     'MON': 0, 'TUE': 1, 'WED': 2, 'THU': 3, 'FRI': 4, 'SAT': 5, 'SUN': 6
     }
-
-JPG_FEATURES = {
-    'x_pitch': 86.5,
-    'x_start': 98,
-    'max': {'off_x': 0, 'loc_y': 301, 'win_x': 81, 'win_y': 37},
-    'min': {'off_x': 0, 'loc_y': 334, 'win_x': 54, 'win_y': 28},
-    'day': {'off_x': 0, 'loc_y': 127, 'win_x': 73, 'win_y': 18}
-    }
-
-
-JPG3_FEATURES = {
-    'x_pitch': 114,
-    'x_start': 99,
-    'max': {'off_x': 24,  'loc_y': 100.5, 'win_x': 64,  'win_y': 40},
-    'min': {'off_x': -29, 'loc_y': 119,   'win_x':43,   'win_y': 32},
-    'day': {'off_x': 0,   'loc_y': 352,   'win_x': 100, 'win_y': 30}
-    }
-
-
-JPG4_FEATURES = {
-    'x_pitch': 90,
-    'x_start': 49,
-    'max': {'off_x': -9, 'loc_y': 305, 'win_x': 65, 'win_y': 56},
-    'min': {'off_x': 20, 'loc_y': 353, 'win_x': 46, 'win_y': 30},
-    'day': {'off_x': 0, 'loc_y': 121, 'win_x': 83, 'win_y': 23}
-    }
+#
+# JPG_FEATURES = {
+#     'x_pitch': 86.5,
+#     'x_start': 98,
+#     'max': {'off_x': 0, 'loc_y': 301, 'win_x': 81, 'win_y': 37},
+#     'min': {'off_x': 0, 'loc_y': 334, 'win_x': 54, 'win_y': 28},
+#     'day': {'off_x': 0, 'loc_y': 127, 'win_x': 73, 'win_y': 18}
+#     }
+#
+#
+# JPG3_FEATURES = {
+#     'x_pitch': 114,
+#     'x_start': 99,
+#     'max': {'off_x': 24,  'loc_y': 100.5, 'win_x': 64,  'win_y': 40},
+#     'min': {'off_x': -29, 'loc_y': 119,   'win_x':43,   'win_y': 32},
+#     'day': {'off_x': 0,   'loc_y': 352,   'win_x': 100, 'win_y': 30}
+#     }
+#
+#
+# JPG4_FEATURES = {
+#     'x_pitch': 90,
+#     'x_start': 49,
+#     'max': {'off_x': -9, 'loc_y': 305, 'win_x': 65, 'win_y': 56},
+#     'min': {'off_x': 20, 'loc_y': 353, 'win_x': 46, 'win_y': 30},
+#     'day': {'off_x': 0, 'loc_y': 121, 'win_x': 83, 'win_y': 23}
+#     }
 
 TEMP_RE = re.compile('-?\d{1,3}')
 DAY_RE = re.compile('\w{3}')
@@ -55,13 +52,15 @@ FFI_RE = re.compile('FFI')
 DATE_RE = re.compile('20\d{2}_\d{2}_\d{2}')
 
 
-def get_crop_dim(day_num, dims):
+def get_crop_dim(day_num, source_item, image_item):
     """Return the crop window.
 
     >>> get_crop_dim(1, {'loc_y': 301, 'win_x': 81, 'win_y': 37})
     (144, 282, 225, 320)
     """
-    x_index = JPG4_FEATURES['x_pitch'] * day_num + JPG4_FEATURES['x_start']
+    x_index = (source_item['dims']['x_pitch'] * day_num +
+               source_item['dims']['x_start'])
+    dims = source_item[image_item]
     x_min = round(x_index + dims['off_x'] - dims['win_x'] / 2)
     x_max = round(x_index + dims['off_x'] + dims['win_x'] / 2)
     y_min = round(dims['loc_y'] - dims['win_y'] / 2)
@@ -69,15 +68,17 @@ def get_crop_dim(day_num, dims):
     return x_min, y_min, x_max, y_max
 
 
-def crop_enhance_item(img, box, feature):
+def crop_enhance_item(img, box, image_item):
     """Crop out and enhance an item."""
     small_img = img.crop(box)
     small_img.load()
     small_bw_img = ImageOps.grayscale(small_img)
+    if not image_item['dark_back']:
+        small_bw_img = ImageOps.invert(small_img)
     small_bw_img = small_bw_img.point(lambda i: 255 if i > 128 else 0)
-    if feature != 'day' and feature != 'min':
+    if image_item['fat']:
         small_bw_img = small_bw_img.filter(ImageFilter.MinFilter(3))
-    pad_img = ImageOps.expand(small_bw_img, border=20, fill='white')
+    pad_img = ImageOps.expand(small_bw_img, border=20, fill='black')
     pad_img.show()
     return pad_img
 
@@ -159,10 +160,11 @@ def get_day_of_week_offset(day_string, day_num, predict_dow, dow_offset):
     return dow_offset
 
 
-def process_item(img, day_num, feature):
+def process_item(img, day_num, source_item, image_str):
     """Process the day, max or min temp item."""
-    box = get_crop_dim(day_num, JPG4_FEATURES[feature])
-    pad_img = crop_enhance_item(img, box, feature)
+    image_item = source_item[image_str]
+    box = get_crop_dim(day_num, source_item, image_item)
+    pad_img = crop_enhance_item(img, box, image_item)
     pad_jpeg = get_virtual_jpeg(pad_img)
     tess_string = call_tesseract(pad_jpeg)
     return tess_string
@@ -185,7 +187,7 @@ def conv_row_list_to_dict(row_list, dow_offset):
     return days_to_max_min
 
 
-def process_image(jpeg_image, source, predict_date):
+def process_image(jpeg_image, source_str, predict_date):
     """Main function to process a 7-day forecast image.
 
     The process is:
@@ -200,17 +202,18 @@ def process_image(jpeg_image, source, predict_date):
     predict_dow = logic.get_date(predict_date).weekday()
     row_list = []
     dow_offset = 10  # Make sure the first day is read, or make data garbage.
-    for day_num in range(models.SOURCE_TO_LENGTH[source]):
-        tess_string = process_item(img, day_num, 'day')
+    source_item = models.SOURCES[source_str]
+    for day_num in range(models.SOURCES[source_str]['length']):
+        tess_string = process_item(img, day_num, source_item, 'day')
         day_string = clean_day_results(tess_string)
         try:
             dow_offset = get_day_of_week_offset(day_string, day_num,
                                                 predict_dow, dow_offset)
         except ValueError:
             pass
-        tess_string = process_item(img, day_num, 'max')
+        tess_string = process_item(img, day_num, source_item, 'max')
         max_temp = clean_temp_results(tess_string)
-        tess_string = process_item(img, day_num, 'min')
+        tess_string = process_item(img, day_num, source_item, 'min')
         min_temp = clean_temp_results(tess_string)
         row_list.append((max_temp, min_temp))
         print('Day: {}, Max: {}, Min: {}'.format(day_string, max_temp,
@@ -230,7 +233,7 @@ def call_tesseract(input_image):
 
 
 def main():
-    file_name = os.path.join(file_processor.SCREEN_DATA_PATH,
+    file_name = os.path.join(models.SOURCES['jpeg4']['data_path'],
                              'screen_SRC42016_10_05.jpg')
     print(file_name)
     with open(file_name, 'rb') as f:
