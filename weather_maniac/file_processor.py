@@ -205,7 +205,7 @@ def process_jpeg_files():
         print('processing JPEG {}'.format(date_string))
         file_name = os.path.join(SCREEN_DATA_PATH, f)
         if getsize(file_name) > 10000:
-            row_list = logic_ocr.process_image(file_name, date_string)
+            row_list = logic_ocr.process_image(file_name, 'jpeg', date_string)
             csv_file = os.path.join(ROOT_PATH, 'total.csv')
             with open(csv_file, 'a', newline='') as csvfile:
                 csv_writer = csv.writer(csvfile, delimiter=',')

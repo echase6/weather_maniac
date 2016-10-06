@@ -22,9 +22,27 @@ WEEKDAY_TO_NUM = {
 JPG_FEATURES = {
     'x_pitch': 86.5,
     'x_start': 98,
-    'max': {'loc_y': 301, 'win_x': 81, 'win_y': 37},
-    'min': {'loc_y': 334, 'win_x': 54, 'win_y': 28},
-    'day': {'loc_y': 127, 'win_x': 73, 'win_y': 18}
+    'max': {'off_x': 0, 'loc_y': 301, 'win_x': 81, 'win_y': 37},
+    'min': {'off_x': 0, 'loc_y': 334, 'win_x': 54, 'win_y': 28},
+    'day': {'off_x': 0, 'loc_y': 127, 'win_x': 73, 'win_y': 18}
+    }
+
+
+JPG3_FEATURES = {
+    'x_pitch': 114,
+    'x_start': 99,
+    'max': {'off_x': 24,  'loc_y': 100.5, 'win_x': 64,  'win_y': 40},
+    'min': {'off_x': -29, 'loc_y': 119,   'win_x':43,   'win_y': 32},
+    'day': {'off_x': 0,   'loc_y': 352,   'win_x': 100, 'win_y': 30}
+    }
+
+
+JPG4_FEATURES = {
+    'x_pitch': 90,
+    'x_start': 49,
+    'max': {'off_x': -9, 'loc_y': 305, 'win_x': 65, 'win_y': 56},
+    'min': {'off_x': 20, 'loc_y': 353, 'win_x': 46, 'win_y': 30},
+    'day': {'off_x': 0, 'loc_y': 121, 'win_x': 83, 'win_y': 23}
     }
 
 TEMP_RE = re.compile('-?\d{1,3}')
@@ -43,9 +61,9 @@ def get_crop_dim(day_num, dims):
     >>> get_crop_dim(1, {'loc_y': 301, 'win_x': 81, 'win_y': 37})
     (144, 282, 225, 320)
     """
-    x_index = JPG_FEATURES['x_pitch'] * day_num + JPG_FEATURES['x_start']
-    x_min = round(x_index - dims['win_x'] / 2)
-    x_max = round(x_index + dims['win_x'] / 2)
+    x_index = JPG4_FEATURES['x_pitch'] * day_num + JPG4_FEATURES['x_start']
+    x_min = round(x_index + dims['off_x'] - dims['win_x'] / 2)
+    x_max = round(x_index + dims['off_x'] + dims['win_x'] / 2)
     y_min = round(dims['loc_y'] - dims['win_y'] / 2)
     y_max = round(dims['loc_y'] + dims['win_y'] / 2)
     return x_min, y_min, x_max, y_max
@@ -59,7 +77,8 @@ def crop_enhance_item(img, box, feature):
     small_bw_img = small_bw_img.point(lambda i: 255 if i > 128 else 0)
     if feature != 'day' and feature != 'min':
         small_bw_img = small_bw_img.filter(ImageFilter.MinFilter(3))
-    pad_img = ImageOps.expand(small_bw_img, border=20, fill='black')
+    pad_img = ImageOps.expand(small_bw_img, border=20, fill='white')
+    pad_img.show()
     return pad_img
 
 
@@ -142,7 +161,7 @@ def get_day_of_week_offset(day_string, day_num, predict_dow, dow_offset):
 
 def process_item(img, day_num, feature):
     """Process the day, max or min temp item."""
-    box = get_crop_dim(day_num, JPG_FEATURES[feature])
+    box = get_crop_dim(day_num, JPG4_FEATURES[feature])
     pad_img = crop_enhance_item(img, box, feature)
     pad_jpeg = get_virtual_jpeg(pad_img)
     tess_string = call_tesseract(pad_jpeg)
@@ -166,7 +185,7 @@ def conv_row_list_to_dict(row_list, dow_offset):
     return days_to_max_min
 
 
-def process_image(jpeg_image, predict_date):
+def process_image(jpeg_image, source, predict_date):
     """Main function to process a 7-day forecast image.
 
     The process is:
@@ -181,7 +200,7 @@ def process_image(jpeg_image, predict_date):
     predict_dow = logic.get_date(predict_date).weekday()
     row_list = []
     dow_offset = 10  # Make sure the first day is read, or make data garbage.
-    for day_num in range(models.SOURCE_TO_LENGTH['jpeg']):
+    for day_num in range(models.SOURCE_TO_LENGTH[source]):
         tess_string = process_item(img, day_num, 'day')
         day_string = clean_day_results(tess_string)
         try:
@@ -212,10 +231,13 @@ def call_tesseract(input_image):
 
 def main():
     file_name = os.path.join(file_processor.SCREEN_DATA_PATH,
-                             'screen_2016_09_22.jpg')
-    jpeg_image = data_loader.get_data(file_name)
+                             'screen_SRC42016_10_05.jpg')
+    print(file_name)
+    with open(file_name, 'rb') as f:
+        jpeg_contents = f.read()
+    # jpeg_image = data_loader.get_data(file_name)
     predict_date = DATE_RE.search(file_name).group(0)
-    row_list, predict_dow = process_image(jpeg_image, predict_date)
+    row_list, predict_dow = process_image(jpeg_contents, 'jpeg4', predict_date)
     print('predict dow: {}, temps: {}.'.format(predict_dow, row_list))
 
 

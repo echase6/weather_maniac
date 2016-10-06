@@ -191,7 +191,7 @@ def process_html_data(daily_forecasts, today_str):
     logic.process_days_to_max_min(days_to_max_min, today_date, 'html')
 
 
-def process_jpeg_data(jpeg_image, today_str):
+def process_jpeg_data(jpeg_image, source, today_str):
     """Main function to extract max and min temperatures from one JPEG file
         and save the contents to a DayRecord.
 
@@ -199,7 +199,8 @@ def process_jpeg_data(jpeg_image, today_str):
        are found for the time from midnight to midnight.
     """
     today_date = logic.get_date(today_str)
-    row_list, predict_dow = logic_ocr.process_image(jpeg_image, today_str)
+    row_list, predict_dow = logic_ocr.process_image(jpeg_image,
+                                                    source, today_str)
     days_to_max_min = logic_ocr.conv_row_list_to_dict(row_list, predict_dow)
     logic.process_days_to_max_min(days_to_max_min, today_date, 'jpeg')
     return days_to_max_min
@@ -366,9 +367,10 @@ def update_api_data():
 def update_jpeg_data():
     """Main function to update and archive the web-site based forecasts."""
     print('Updating jpeg...')
+    source = 'jpeg'
     today_str = strftime('%Y_%m_%d')
     jpeg_image = get_data(settings.WM_SRC1_ID)
-    days_to_max_min = process_jpeg_data(jpeg_image, today_str)
+    days_to_max_min = process_jpeg_data(jpeg_image, source, today_str)
     if settings.WM_LOCAL:
         store_jpeg_file(jpeg_image, today_str, 'SRC1')
         days_to_max_min['predict'] = today_str

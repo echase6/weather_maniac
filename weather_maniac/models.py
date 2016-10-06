@@ -3,9 +3,10 @@
 from django.db import models
 import datetime
 
-SOURCES = ['html', 'api', 'jpeg']
-SOURCE_TO_LENGTH = {'html': 7, 'api': 5, 'jpeg': 7}
-SOURCE_TO_NAME = {'html': 'Service A', 'api': 'Service B', 'jpeg': 'Service C'}
+SOURCES = ['html', 'api', 'jpeg', 'jpeg3', 'jpeg4']
+SOURCE_TO_LENGTH = {'html': 7, 'api': 5, 'jpeg': 7, 'jpeg3': 7, 'jpeg4': 7}
+SOURCE_TO_NAME = {'html': 'Service A', 'api': 'Service B', 'jpeg': 'Service C',
+                  'jpeg3': 'Service D', 'jpeg4': 'Service E'}
 TYPES = ['max', 'min']
 LOCATIONS = {'AURORA STATE AIRPORT OR US': 'AUR',
              'OREGON CITY OR US': 'OCO',
