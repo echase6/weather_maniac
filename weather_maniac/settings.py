@@ -157,6 +157,8 @@ if os.path.isfile(BASE_DIR + '\env_local.py'):
     WM_APP_KEY = env_local.WM_APP_KEY
     WM_SRC1_ID = env_local.WM_SRC1_ID
     WM_SRC2_ID = env_local.WM_SRC2_ID
+    WM_SRC3_ID = env_local.WM_SRC3_ID
+    WM_SRC4_ID = env_local.WM_SRC4_ID
     WM_MEAS_ID = env_local.WM_MEAS_ID
     WM_LOCAL = True
 else:
@@ -164,5 +166,7 @@ else:
     WM_APP_KEY = os.environ['WM_APP_KEY']
     WM_SRC1_ID = os.environ['WM_SRC1_ID']
     WM_SRC2_ID = os.environ['WM_SRC2_ID']
+    WM_SRC3_ID = os.environ['WM_SRC3_ID']
+    WM_SRC4_ID = os.environ['WM_SRC4_ID']
     WM_MEAS_ID = os.environ['WM_MEAS_ID']
     WM_LOCAL = False

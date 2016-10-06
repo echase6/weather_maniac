@@ -78,7 +78,7 @@ def extract_fcst_soup(html_data):
     return html_soup.find_all('div', class_='weather-box daily-forecast')
 
 
-def store_jpeg_file(contents, today_str):
+def store_jpeg_file(contents, today_str, source):
     """JPG storing function.
 
     The file is stored directly in the Data/ directory since the processor
@@ -87,7 +87,7 @@ def store_jpeg_file(contents, today_str):
     Since these are jpg files, they are stored as bytes.
     """
     file_name = os.path.join(file_processor.SCREEN_DATA_PATH,
-                             ('screen_' + today_str + '.jpg'))
+                             ('screen_' + source + '_' + today_str + '.jpg'))
     try:
         with open(file_name, 'wb') as f:
             file = File(f)
@@ -103,7 +103,12 @@ def archive_jpeg_file():
     print('Archiving measured...')
     today_str = strftime('%Y_%m_%d')
     jpg_contents = get_data(settings.WM_SRC1_ID)
-    store_jpeg_file(jpg_contents, today_str)
+    store_jpeg_file(jpg_contents, today_str, 'SRC1')
+    jpg_contents = get_data(settings.WM_SRC3_ID)
+    store_jpeg_file(jpg_contents, today_str, 'SRC3')
+    jpg_contents = get_data(settings.WM_SRC4_ID)
+    store_jpeg_file(jpg_contents, today_str, 'SRC4')
+
 
 
 def store_html_file(fcast_soup, today_str):
@@ -365,7 +370,7 @@ def update_jpeg_data():
     jpeg_image = get_data(settings.WM_SRC1_ID)
     days_to_max_min = process_jpeg_data(jpeg_image, today_str)
     if settings.WM_LOCAL:
-        store_jpeg_file(jpeg_image, today_str)
+        store_jpeg_file(jpeg_image, today_str, 'SRC1')
         days_to_max_min['predict'] = today_str
         csv_file = os.path.join(file_processor.ROOT_PATH, 'total.csv')
         with open(csv_file, 'a', newline='') as csvfile:
