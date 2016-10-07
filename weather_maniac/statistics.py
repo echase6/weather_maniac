@@ -201,7 +201,7 @@ def make_stats_json(source_str, mtype):
     >>> sorted(json.items())
     ...   # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
     [('end_date', datetime.date(2016, 8, 1)), ('mtype', 'max'),
-    ('source_str', 'Service B'), ('start_date', datetime.date(2016, 6, 1)),
+    ('source', 'Service B'), ('start_date', datetime.date(2016, 6, 1)),
     ('stats_by_day', [...])]
     >>> for day in json['stats_by_day']:
     ...   sorted(day.items())
@@ -227,7 +227,7 @@ def make_stats_json(source_str, mtype):
         }
         stats_by_day.append(record_by_day)
     return {
-        'source_str': models.SOURCES[source_str]['alias'],
+        'source': models.SOURCES[source_str]['alias'],
         'mtype': mtype,
         'stats_by_day': stats_by_day,
         'start_date': start_date,

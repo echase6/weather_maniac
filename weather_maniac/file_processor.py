@@ -172,6 +172,7 @@ def process_html_files():
 
 def process_jpeg_files():
     """Process the files loaded thought the web site (i.e., JPEG)."""
+    # TODO: expand this to include all jpeg files
     data_path = models.SOURCES['jpeg']['data_path']
     only_files = [f for f in listdir(data_path)
                   if isfile(os.path.join(data_path, f))]
