@@ -78,7 +78,7 @@ def extract_fcst_soup(html_data):
     return html_soup.find_all('div', class_='weather-box daily-forecast')
 
 
-def store_jpeg_file(contents, today_str, source):
+def store_jpeg_file(contents, today_str, source_str):
     """JPG storing function.
 
     The file is stored directly in the Data/ directory since the processor
@@ -86,15 +86,16 @@ def store_jpeg_file(contents, today_str, source):
     The file repo has each file with the date+time encoded in the filename.
     Since these are jpg files, they are stored as bytes.
     """
-    file_name = os.path.join(source['data_path'],
-                             ('screen_' + source + '_' + today_str + '.jpg'))
+    file_name = os.path.join(models.SOURCES[source_str]['data_path'],
+                             ('screen_' + source_str +
+                              '_' + today_str + '.jpg'))
     try:
         with open(file_name, 'wb') as f:
             file = File(f)
             file.write(contents)
     except FileNotFoundError as error:
         print('{}: Likely {} does not exist'.format(
-            error, source['data_path']))
+            error, source_str['data_path']))
         print('Proceeding without data archiving...')
 
 
@@ -198,9 +199,9 @@ def process_jpeg_data(jpeg_image, source_str, today_str):
        are found for the time from midnight to midnight.
     """
     today_date = logic.get_date(today_str)
-    source_item = models.SOURCES[source_str]
+    # source_item = models.SOURCES[source_str]
     row_list, predict_dow = logic_ocr.process_image(jpeg_image,
-                                                    source_item, today_str)
+                                                    source_str, today_str)
     days_to_max_min = logic_ocr.conv_row_list_to_dict(row_list, predict_dow)
     logic.process_days_to_max_min(days_to_max_min, today_date, source_str)
     return days_to_max_min
@@ -244,14 +245,14 @@ def store_meas_file(meas_soup, today_str):
     The file repo has each file with the date+time encoded in the filename.
     """
     meas_html_string = str(meas_soup)
-    file_name = os.path.join(models.SOURCES['act']['arch_path'],
+    file_name = os.path.join(models.ACTUAL['arch_path'],
                              ('meas_' + today_str + '.html'))
     try:
         with open(file_name, 'w') as file:
             file.write(meas_html_string)
     except FileNotFoundError as error:
         print('{}: Likely {} does not exist'.format(
-            error, models.SOURCES['act']['arch_path']))
+            error, models.ACTUAL['arch_path']))
         print('Proceeding without data archiving...')
 
 
@@ -286,7 +287,7 @@ def process_meas_data(daily_meas_soup, today_str):
         act_temp_model.save()
 
 
-def load_forecast_record(source, today):
+def load_forecast_record(source_str, today):
     """Ensure that the forecast record is current.
 
     Look for tomorrow's record since sometimes today is missing a min temp.
@@ -294,18 +295,18 @@ def load_forecast_record(source, today):
     tomorrow = today + datetime.timedelta(1)
     try:
         models.DayRecord.objects.get(
-            source=source,
+            source=source_str,
             date_reference=tomorrow,
             day_in_advance=1
         )
     except models.DayRecord.DoesNotExist:
         update_html_data()
         update_api_data()
-    for source_str in ['jpeg', 'jpeg3', 'jpeg4']:
-        update_jpeg_data(source_str)
+        for source_str in ['jpeg', 'jpeg3', 'jpeg4']:
+            update_jpeg_data(source_str)
 
 
-def get_forecast(source, mtype, today):
+def get_forecast(source_str, mtype, today):
     """Get the current temperature forecast.
 
     >>> today = datetime.date.today()
@@ -321,12 +322,12 @@ def get_forecast(source, mtype, today):
     >>> get_forecast('api', 'max', today)
     {0: 83, 1: 83, 2: 83, 3: 83, 4: 83}
     """
-    load_forecast_record(source, today)
+    load_forecast_record(source_str, today)
     records = []
-    for day in range(models.SOURCES[source]['length']):
+    for day in range(models.SOURCES[source_str]['length']):
         try:
             record = [models.DayRecord.objects.get(
-                source=source,
+                source=source_str,
                 day_in_advance=day,
                 date_reference=today + datetime.timedelta(day)
             )]
@@ -373,7 +374,7 @@ def update_jpeg_data(source_str):
     jpeg_image = get_data(models.SOURCES[source_str]['location'])
     days_to_max_min = process_jpeg_data(jpeg_image, source_str, today_str)
     if settings.WM_LOCAL:
-        store_jpeg_file(jpeg_image, today_str, models.SOURCES['jpeg'])
+        store_jpeg_file(jpeg_image, today_str, source_str)
         days_to_max_min['predict'] = today_str
         csv_file = os.path.join(file_processor.ROOT_PATH, 'total.csv')
         with open(csv_file, 'a', newline='') as csvfile:

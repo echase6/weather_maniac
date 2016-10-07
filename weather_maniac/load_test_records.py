@@ -6,11 +6,11 @@ import datetime
 
 def histo_loader():
     """This dumps data into histograms for testing purposes."""
-    for source in models.SOURCES:
+    for source_name, source_item in models.SOURCES.items():
         for mtype in models.TYPES:
-            for day in range(models.SOURCE_TO_LENGTH[source]):
+            for day in range(source_item['length']):
                 histo = models.ErrorHistogram(
-                    source=source,
+                    source=source_name,
                     mtype=mtype,
                     location='PDX',
                     day_in_advance=day)

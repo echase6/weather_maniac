@@ -6,7 +6,11 @@ import os
 from . import file_processor
 from . import settings
 
-# SOURCES = ['html', 'api', 'jpeg', 'jpeg3', 'jpeg4']
+ACTUAL = {'data_path': os.path.join(file_processor.ROOT_PATH,
+                                    'ACT_Data'),
+          'arch_path': os.path.join(file_processor.ROOT_PATH,
+                                    'ACT_Arch'),
+          'location': settings.WM_MEAS_ID}
 
 SOURCES = {'html': {'length': 7, 'alias': 'Service A',
                     'data_path': os.path.join(file_processor.ROOT_PATH,
@@ -14,11 +18,6 @@ SOURCES = {'html': {'length': 7, 'alias': 'Service A',
                     'arch_path': os.path.join(file_processor.ROOT_PATH,
                                               'HTML_Arch'),
                     'location': settings.WM_SRC2_ID},
-           'act': {'data_path': os.path.join(file_processor.ROOT_PATH,
-                                             'ACT_Data'),
-                   'arch_path': os.path.join(file_processor.ROOT_PATH,
-                                             'ACT_Arch'),
-                   'location': settings.WM_MEAS_ID},
            'api': {'length': 5, 'alias': 'Service B',
                    'data_path': os.path.join(file_processor.ROOT_PATH,
                                              'API_Data'),
@@ -73,9 +72,6 @@ SOURCES = {'html': {'length': 7, 'alias': 'Service A',
                      }}
            }
 
-# SOURCE_TO_LENGTH = {'html': 7, 'api': 5, 'jpeg': 7, 'jpeg3': 7, 'jpeg4': 7}
-# SOURCE_TO_NAME = {'html': 'Service A', 'api': 'Service B', 'jpeg': 'Service C',
-#                   'jpeg3': 'Service D', 'jpeg4': 'Service E'}
 TYPES = ['max', 'min']
 LOCATIONS = {'AURORA STATE AIRPORT OR US': 'AUR',
              'OREGON CITY OR US': 'OCO',

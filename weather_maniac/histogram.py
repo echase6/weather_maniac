@@ -151,21 +151,14 @@ def populate_all_histograms():
     >>> load_test_records.record_loader()
     >>> populate_all_histograms()
     ... # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-    Updating source: html, loc: PDX, mtype: max, day adv: 0, error: -2,
+    Updating source: ..., loc: PDX, mtype: max, day adv: 0, error: -2,
     date: 2016-07-01 ...
     No forecast matching actual record for 2016-07-12
     >>> for ebin in models.ErrorBin.objects.all():
     ...   print(str(ebin))
     ...   # doctest: +ELLIPSIS
     html, max, PDX, 0, -2, 12, 2016-07-01, 2016-07-12
-    ...
-    html, min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
-    api, max, PDX, 0, -2, 12, 2016-07-01, 2016-07-12
-    ...
-    api, min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
-    jpeg, max, PDX, 0, -2, 12, 2016-07-01, 2016-07-12
-    ...
-    jpeg, min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
+    ..., min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
     """
     for source_str, source_item in models.SOURCES.items():
         for mtype in models.TYPES:
