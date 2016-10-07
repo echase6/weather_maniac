@@ -142,7 +142,7 @@ def process_api_data(json_string, today_str):
        are found for the time from midnight to midnight.
 
     >>> from . import load_test_json
-    >>> today_str = '2016_06_16'
+    >>> today_str = '2016_06_16_10_10'
     >>> process_api_data(load_test_json.test_json, today_str)
     >>> forecasts = models.DayRecord.objects.all()
     >>> for forecast in forecasts:
@@ -170,7 +170,7 @@ def process_html_data(daily_forecasts, today_str):
        are found for the time from midnight to midnight.
 
     >>> from . import load_test_html
-    >>> today_str = '2016_07_24'
+    >>> today_str = '2016_07_24_10_10'
     >>> html_soup = extract_fcst_soup(load_test_html.test_html)
     >>> process_html_data(html_soup, today_str)
     >>> for forecast in models.DayRecord.objects.all():
@@ -260,7 +260,7 @@ def process_meas_data(daily_meas_soup, today_str):
        are found for the time from midnight to midnight.
 
     >>> from . import load_test_meas
-    >>> today_str = '2016_07_24'
+    >>> today_str = '2016_07_24_10_10'
     >>> meas_soup = extract_meas_soup(load_test_meas.test_meas_html)
     >>> process_meas_data(meas_soup, today_str)
     >>> for actual in models.ActualDayRecord.objects.all():

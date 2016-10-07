@@ -158,7 +158,7 @@ def _update_forecast(date, day_in_advance, source, max_temp, min_temp):
 def get_date(date_string):
     """Convert date string into date object.
 
-    >>> get_date('2016_06_01')
+    >>> get_date('2016_06_01_10_10')
     datetime.date(2016, 6, 1)
     """
     date_format = '%Y_%m_%d_%H_%M'
