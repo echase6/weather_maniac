@@ -161,7 +161,7 @@ def get_date(date_string):
     >>> get_date('2016_06_01')
     datetime.date(2016, 6, 1)
     """
-    date_format = '%Y_%m_%d'
+    date_format = '%Y_%m_%d_%H_%M'
     return datetime.strptime(date_string, date_format).date()
 
 

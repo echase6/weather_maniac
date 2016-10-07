@@ -102,13 +102,10 @@ def store_jpeg_file(contents, today_str, source_str):
 def archive_jpeg_file():
     """JPG file archiver"""
     print('Archiving measured...')
-    today_str = strftime('%Y_%m_%d')
-    jpg_contents = get_data(settings.WM_SRC1_ID)
-    store_jpeg_file(jpg_contents, today_str, 'jpeg')
-    jpg_contents = get_data(settings.WM_SRC3_ID)
-    store_jpeg_file(jpg_contents, today_str, 'jpeg3')
-    jpg_contents = get_data(settings.WM_SRC4_ID)
-    store_jpeg_file(jpg_contents, today_str, 'jpeg4')
+    today_str = strftime('%Y_%m_%d_%H_%M')
+    for source_str in ['jpeg', 'jpeg3', 'jpeg4']:
+        jpg_contents = get_data(models.SOURCES[source_str]['location'])
+        store_jpeg_file(jpg_contents, today_str, source_str)
 
 
 def store_html_file(fcast_soup, today_str):
@@ -199,7 +196,6 @@ def process_jpeg_data(jpeg_image, source_str, today_str):
        are found for the time from midnight to midnight.
     """
     today_date = logic.get_date(today_str)
-    # source_item = models.SOURCES[source_str]
     row_list, predict_dow = logic_ocr.process_image(jpeg_image,
                                                     source_str, today_str)
     days_to_max_min = logic_ocr.conv_row_list_to_dict(row_list, predict_dow)
@@ -347,7 +343,7 @@ def get_forecast(source_str, mtype, today):
 def update_html_data():
     """Main function to update and archive the web-site based forecasts."""
     print('Updating html...')
-    today_str = strftime('%Y_%m_%d')
+    today_str = strftime('%Y_%m_%d_%H_%M')
     html_data = get_data(settings.WM_SRC2_ID)
     html_soup = extract_fcst_soup(html_data)
     if settings.WM_LOCAL:
@@ -358,7 +354,7 @@ def update_html_data():
 def update_api_data():
     """Main function to update and archive the api based forecasts."""
     print('Updating api...')
-    today_str = strftime('%Y_%m_%d')
+    today_str = strftime('%Y_%m_%d_%H_%M')
     app_str = '&'.join([settings.WM_APP_ID, settings.WM_APP_KEY])
     api_string = get_api_data(app_str)
     if settings.WM_LOCAL:
@@ -370,7 +366,7 @@ def update_jpeg_data(source_str):
     """Main function to update and archive the web-site based forecasts."""
     # source_str = list(source.keys())[0]
     print('Updating {}...'.format(source_str))
-    today_str = strftime('%Y_%m_%d')
+    today_str = strftime('%Y_%m_%d_%H_%M')
     jpeg_image = get_data(models.SOURCES[source_str]['location'])
     days_to_max_min = process_jpeg_data(jpeg_image, source_str, today_str)
     if settings.WM_LOCAL:
@@ -386,7 +382,7 @@ def update_jpeg_data(source_str):
 def update_meas_data():
     """Main function to update and archive the measured temps."""
     print('Updating measured...')
-    today_str = strftime('%Y_%m_%d')
+    today_str = strftime('%Y_%m_%d_%H_%M')
     meas_data = get_data(settings.WM_MEAS_ID)
     meas_soup = extract_meas_soup(meas_data)
     if settings.WM_LOCAL:

@@ -57,7 +57,6 @@ def crop_enhance_item(img, box, image_item):
     if image_item['proc'] == 'fat' or image_item['proc'] == 'grow':
         small_bw_img = small_bw_img.filter(ImageFilter.MinFilter(3))
     pad_img = ImageOps.expand(small_bw_img, border=20, fill='black')
-    pad_img.show()
     return pad_img
 
 
@@ -179,7 +178,6 @@ def process_image(jpeg_image, source_str, predict_date):
     predict_dow = logic.get_date(predict_date).weekday()
     row_list = []
     dow_offset = 10  # Make sure the first day is read, or make data garbage.
-    # source_item = models.SOURCES[source_str]
     for day_num in range(models.SOURCES[source_str]['length']):
         tess_string = process_item(img, day_num, source_str, 'day')
         day_string = clean_day_results(tess_string)
@@ -216,7 +214,6 @@ def main():
     print(file_name)
     with open(file_name, 'rb') as f:
         jpeg_contents = f.read()
-    # jpeg_image = data_loader.get_data(file_name)
     predict_date = DATE_RE.search(file_name).group(0)
     row_list, predict_dow = process_image(jpeg_contents, source_str, predict_date)
     print('predict dow: {}, temps: {}.'.format(predict_dow, row_list))
