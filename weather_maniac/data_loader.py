@@ -104,11 +104,11 @@ def archive_jpeg_file():
     print('Archiving measured...')
     today_str = strftime('%Y_%m_%d')
     jpg_contents = get_data(settings.WM_SRC1_ID)
-    store_jpeg_file(jpg_contents, today_str, models.SOURCES['jpeg'])
+    store_jpeg_file(jpg_contents, today_str, 'jpeg')
     jpg_contents = get_data(settings.WM_SRC3_ID)
-    store_jpeg_file(jpg_contents, today_str, models.SOURCES['jpeg3'])
+    store_jpeg_file(jpg_contents, today_str, 'jpeg3')
     jpg_contents = get_data(settings.WM_SRC4_ID)
-    store_jpeg_file(jpg_contents, today_str, models.SOURCES['jpeg4'])
+    store_jpeg_file(jpg_contents, today_str, 'jpeg4')
 
 
 def store_html_file(fcast_soup, today_str):

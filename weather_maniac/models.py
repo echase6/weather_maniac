@@ -34,12 +34,12 @@ SOURCES = {'html': {'length': 7, 'alias': 'Service A',
                     'dims': {
                         'x_pitch': 86.5, 'x_start': 98,
                         'max': {'off_x': 0, 'loc_y': 301, 'win_x': 81,
-                                'win_y': 37, 'dark_back': True, 'fat': True},
+                                'win_y': 37, 'dark_back': True, 'proc': 'fat'},
                         'min': {'off_x': 0, 'loc_y': 334, 'win_x': 54,
-                                'win_y': 28, 'dark_back': True, 'fat': False},
+                                'win_y': 28, 'dark_back': True, 'proc': 'none'},
                         'day': {'off_x': 0, 'loc_y': 127, 'win_x': 73,
                                 'win_y': 18, 'dark_back': True,
-                                'fat': False}}},
+                                'proc': 'none'}}},
            'jpeg3': {'length': 7, 'alias': 'Service D',
                      'data_path': os.path.join(file_processor.ROOT_PATH,
                                                'JPEG3_Data'),
@@ -48,12 +48,12 @@ SOURCES = {'html': {'length': 7, 'alias': 'Service A',
                      'location': settings.WM_SRC3_ID,
                      'dims': {
                          'x_pitch': 114, 'x_start': 99,
-                         'max': {'off_x': 24, 'loc_y': 100.5, 'win_x': 64,
-                                 'win_y': 40, 'dark_back': True, 'fat': False},
+                         'max': {'off_x': 22, 'loc_y': 100.5, 'win_x': 64,
+                                 'win_y': 40, 'dark_back': True, 'proc': 'none'},
                          'min': {'off_x': -29, 'loc_y': 119, 'win_x': 43,
-                                 'win_y': 32, 'dark_back': True, 'fat': False},
+                                 'win_y': 32, 'dark_back': True, 'proc': 'grow'},
                          'day': {'off_x': 0, 'loc_y': 352, 'win_x': 100,
-                                 'win_y': 30, 'dark_back': False, 'fat': False}
+                                 'win_y': 30, 'dark_back': False, 'proc': 'none'}
                      }},
            'jpeg4': {'length': 7, 'alias': 'Service E',
                      'data_path': os.path.join(file_processor.ROOT_PATH,
@@ -64,11 +64,11 @@ SOURCES = {'html': {'length': 7, 'alias': 'Service A',
                      'dims': {
                          'x_pitch': 90, 'x_start': 49,
                          'max': {'off_x': -9, 'loc_y': 305, 'win_x': 65,
-                                 'win_y': 56, 'dark_back': True, 'fat': False},
-                         'min': {'off_x': 20, 'loc_y': 353, 'win_x': 46,
-                                 'win_y': 30, 'dark_back': True, 'fat': False},
+                                 'win_y': 56, 'dark_back': True, 'proc': 'none'},
+                         'min': {'off_x': 18, 'loc_y': 353, 'win_x': 46,
+                                 'win_y': 30, 'dark_back': True, 'proc': 'none'},
                          'day': {'off_x': 0, 'loc_y': 121, 'win_x': 83,
-                                 'win_y': 23, 'dark_back': False, 'fat': False}
+                                 'win_y': 23, 'dark_back': False, 'proc': 'none'}
                      }}
            }
 

@@ -49,12 +49,15 @@ def crop_enhance_item(img, box, image_item):
     small_img.load()
     small_bw_img = ImageOps.grayscale(small_img)
     if not image_item['dark_back']:
-        small_bw_img = ImageOps.invert(small_img)
+        small_bw_img = ImageOps.invert(small_bw_img)
     small_bw_img = small_bw_img.point(lambda i: 255 if i > 128 else 0)
-    if image_item['fat']:
+    if image_item['proc'] == 'grow':
+        size = (image_item['win_x'] * 2, image_item['win_y'] * 2)
+        small_bw_img = small_bw_img.resize(size, resample=0)
+    if image_item['proc'] == 'fat' or image_item['proc'] == 'grow':
         small_bw_img = small_bw_img.filter(ImageFilter.MinFilter(3))
     pad_img = ImageOps.expand(small_bw_img, border=20, fill='black')
-    # pad_img.show()
+    pad_img.show()
     return pad_img
 
 
@@ -207,14 +210,15 @@ def call_tesseract(input_image):
 
 
 def main():
-    file_name = os.path.join(models.SOURCES['jpeg4']['data_path'],
-                             'screen_SRC42016_10_05.jpg')
+    source_str = 'jpeg'
+    file_name = os.path.join(models.SOURCES[source_str]['data_path'],
+                             'screen_jpeg_2016_10_07.jpg')
     print(file_name)
     with open(file_name, 'rb') as f:
         jpeg_contents = f.read()
     # jpeg_image = data_loader.get_data(file_name)
     predict_date = DATE_RE.search(file_name).group(0)
-    row_list, predict_dow = process_image(jpeg_contents, 'jpeg4', predict_date)
+    row_list, predict_dow = process_image(jpeg_contents, source_str, predict_date)
     print('predict dow: {}, temps: {}.'.format(predict_dow, row_list))
 
 
