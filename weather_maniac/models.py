@@ -64,7 +64,7 @@ SOURCES = {'html': {'length': 7, 'alias': 'Service A',
                      'dims': {
                          'x_pitch': 90, 'x_start': 49,
                          'max': {'off_x': -9, 'loc_y': 305, 'win_x': 65,
-                                 'win_y': 56, 'dark_back': True, 'proc': 'none'},
+                                 'win_y': 56, 'dark_back': True, 'proc': 'squish'},
                          'min': {'off_x': 18, 'loc_y': 353, 'win_x': 46,
                                  'win_y': 30, 'dark_back': True, 'proc': 'none'},
                          'day': {'off_x': 0, 'loc_y': 121, 'win_x': 83,
