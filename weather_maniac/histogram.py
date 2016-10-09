@@ -151,28 +151,21 @@ def populate_all_histograms():
     >>> load_test_records.record_loader()
     >>> populate_all_histograms()
     ... # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-    Updating source: html, loc: PDX, mtype: max, day adv: 0, error: -2,
+    Updating source: ..., loc: PDX, mtype: max, day adv: 0, error: -2,
     date: 2016-07-01 ...
     No forecast matching actual record for 2016-07-12
     >>> for ebin in models.ErrorBin.objects.all():
     ...   print(str(ebin))
     ...   # doctest: +ELLIPSIS
     html, max, PDX, 0, -2, 12, 2016-07-01, 2016-07-12
-    ...
-    html, min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
-    api, max, PDX, 0, -2, 12, 2016-07-01, 2016-07-12
-    ...
-    api, min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
-    jpeg, max, PDX, 0, -2, 12, 2016-07-01, 2016-07-12
-    ...
-    jpeg, min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
+    ..., min, PDX, 2, 0, 12, 2016-07-01, 2016-07-12
     """
-    for source in models.SOURCES:
+    for source_str, source_item in models.SOURCES.items():
         for mtype in models.TYPES:
-            for day_in_advance in range(models.SOURCE_TO_LENGTH[source]):
+            for day_in_advance in range(source_item['length']):
                 location = 'PDX'
                 start_day = datetime.date(2016, 6, 1)
-                populate_histogram(source, location, mtype, day_in_advance,
+                populate_histogram(source_str, location, mtype, day_in_advance,
                                    start_day)
 
 
@@ -390,7 +383,7 @@ def get_statistics_per_day(bins):
     return mean, std
 
 
-def get_statistics(source, location, mtype):
+def get_statistics(source_str, location, mtype):
     """Main function to collect statistics for application to the forecast
          points on the web-site.
 
@@ -404,12 +397,13 @@ def get_statistics(source, location, mtype):
     """
     means = {}
     stds = {}
-    for day in range(models.SOURCE_TO_LENGTH[source]):
-        latest_bin = get_latest_histogram_bin(source, location, mtype, day)
-        latest_day = get_latest_matching_day(source, location, day, latest_bin)
+    for day in range(models.SOURCES[source_str]['length']):
+        latest_bin = get_latest_histogram_bin(source_str, location, mtype, day)
+        latest_day = get_latest_matching_day(source_str,
+                                             location, day, latest_bin)
         if latest_day > latest_bin:
-            populate_histogram(source, location, mtype, day, latest_bin)
-        bins = get_all_bins(source, location, mtype, day)
+            populate_histogram(source_str, location, mtype, day, latest_bin)
+        bins = get_all_bins(source_str, location, mtype, day)
         means[day], stds[day] = get_statistics_per_day(bins)
     return means, stds
 

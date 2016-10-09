@@ -17,14 +17,6 @@ from . import settings
 
 ROOT_PATH = os.path.join(settings.BASE_DIR, 'rawdatafiles')
 CONTAINER_PATH = os.path.join(ROOT_PATH, 'Reduced_Data')
-API_DATA_PATH = os.path.join(ROOT_PATH, 'API_Data')
-API_ARCH_PATH = os.path.join(ROOT_PATH, 'API_Arch')
-HTML_DATA_PATH = os.path.join(ROOT_PATH, 'HTML_Data')
-HTML_ARCH_PATH = os.path.join(ROOT_PATH, 'HTML_Arch')
-ACTUAL_DATA_PATH = os.path.join(ROOT_PATH, 'ACT_Data')
-ACTUAL_ARCH_PATH = os.path.join(ROOT_PATH, 'ACT_Arch')
-SCREEN_DATA_PATH = os.path.join(ROOT_PATH, 'Screen_Data')
-SCREEN_ARCH_PATH = os.path.join(ROOT_PATH, 'Screen_Arch')
 
 DATA_RE = re.compile('20\d{2}_\d{2}_\d{2}')
 
@@ -82,24 +74,6 @@ def process_json_file(file_name):
     logic.process_days_to_max_min(days_to_max_min, predict_date, 'api')
 
 
-# def process_jpeg_file(file_name):
-    """Main function to extract max and min temperatures from one API(json) file
-        and save the contents to a DayRecord.
-
-    The file contains temperature predictions every hour (not max/min) so the
-       process is to find the max and min for a given day.
-    The prediction date comes from when the file was read, and is encoded in
-       the filename.  The json file does not contain prediction time.
-    The date the forecast applies to is normalized to PDT, and max/min temps
-       are found for the time from midnight to midnight.
-    """
-    # predict_date = logic.get_date(DATA_RE.search(file_name).group(0))
-    # json_data = _get_json(file_name)
-    # days_to_max_min = logic.get_retimed_fcsts_from_json(json_data,
-    # predict_date)
-    # logic.process_days_to_max_min(days_to_max_min, predict_date, 'api')
-
-
 def _process_csv_row(row, max_temp_index, min_temp_index):
     """Convert the csv rows into saved model records."""
     date = datetime.datetime.strptime(row[2], '%Y%m%d').date()
@@ -131,9 +105,7 @@ def process_actual_csv_file(filename):
 
 
 def _process_jpeg_csv_row(row):
-    """Convert the csv rows into saved model records.
-
-    """
+    """Convert the csv rows into saved model records."""
     days_to_max_min = {}
     for index in range(1, 20, 3):  # TODO: make this aware of short rows
         if all([item != '' for item in row[index:index+3]]):
@@ -168,14 +140,16 @@ def process_api_files():
 
     Comparison with 100B done to strip off partial files (normal: 15kB)
     """
-    only_files = [f for f in listdir(API_DATA_PATH)
-                  if isfile(os.path.join(API_DATA_PATH, f))]
+    data_path = models.SOURCES['api']['data_path']
+    arch_path = models.SOURCES['api']['arch_path']
+    only_files = [f for f in listdir(data_path)
+                  if isfile(os.path.join(data_path, f))]
     for f in only_files:
         date_string = DATA_RE.search(f).group(0)
         print('processing API {}'.format(date_string))
-        if getsize(os.path.join(API_DATA_PATH, f)) > 100:
-            process_json_file(API_DATA_PATH + f)
-            move_file_to_archive(f, API_DATA_PATH, API_ARCH_PATH)
+        if getsize(os.path.join(data_path, f)) > 100:
+            process_json_file(data_path + f)
+            move_file_to_archive(f, data_path, arch_path)
 
 
 def process_html_files():
@@ -184,28 +158,32 @@ def process_html_files():
     Comparison with 10KB done to strip off partial files
       (original: 115kB, archived: 15kB)
     """
-    only_files = [f for f in listdir(HTML_DATA_PATH)
-                  if isfile(os.path.join(HTML_DATA_PATH, f))]
+    data_path = models.SOURCES['html']['data_path']
+    arch_path = models.SOURCES['html']['arch_path']
+    only_files = [f for f in listdir(data_path)
+                  if isfile(os.path.join(data_path, f))]
     for f in only_files:
         date_string = DATA_RE.search(f).group(0)
         print('processing HTML {}'.format(date_string))
-        if getsize(os.path.join(HTML_DATA_PATH, f)) > 10000:
-            process_html_file(HTML_DATA_PATH + f)
-            move_file_to_archive(f, HTML_DATA_PATH, HTML_ARCH_PATH)
+        if getsize(os.path.join(data_path, f)) > 10000:
+            process_html_file(data_path + f)
+            move_file_to_archive(f, data_path, arch_path)
 
 
 def process_jpeg_files():
     """Process the files loaded thought the web site (i.e., JPEG)."""
-    only_files = [f for f in listdir(SCREEN_DATA_PATH)
-                  if isfile(os.path.join(SCREEN_DATA_PATH, f))]
+    # TODO: expand this to include all jpeg files
+    data_path = models.SOURCES['jpeg']['data_path']
+    only_files = [f for f in listdir(data_path)
+                  if isfile(os.path.join(data_path, f))]
     for f in only_files:
         if f == 'thumbs.db':
             continue
         date_string = DATA_RE.search(f).group(0)
         print('processing JPEG {}'.format(date_string))
-        file_name = os.path.join(SCREEN_DATA_PATH, f)
+        file_name = os.path.join(data_path, f)
         if getsize(file_name) > 10000:
-            row_list = logic_ocr.process_image(file_name, date_string)
+            row_list = logic_ocr.process_image(file_name, 'jpeg', date_string)
             csv_file = os.path.join(ROOT_PATH, 'total.csv')
             with open(csv_file, 'a', newline='') as csvfile:
                 csv_writer = csv.writer(csvfile, delimiter=',')
@@ -216,14 +194,16 @@ def process_jpeg_files():
 
 def process_actual_files():
     """Process the files loaded thought the web site as JPG."""
-    only_files = [f for f in listdir(ACTUAL_DATA_PATH)
-                  if isfile(join(ACTUAL_DATA_PATH, f))]
+    data_path = models.SOURCES['act']['data_path']
+    arch_path = models.SOURCES['act']['arch_path']
+    only_files = [f for f in listdir(data_path)
+                  if isfile(join(data_path, f))]
     for f in only_files:
         f_string = f
         print('processing Actuals {}'.format(f_string))
-        if getsize(ACTUAL_DATA_PATH + f) > 10:
-            process_actual_csv_file(ACTUAL_DATA_PATH + f)
-            move_file_to_archive(f, ACTUAL_DATA_PATH, ACTUAL_ARCH_PATH)
+        if getsize(data_path + f) > 10:
+            process_actual_csv_file(data_path + f)
+            move_file_to_archive(f, data_path, arch_path)
 
 
 def main():
