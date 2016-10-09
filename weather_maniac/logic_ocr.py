@@ -67,7 +67,7 @@ def crop_enhance_item(img, box, image_item):
     if image_item['proc'] == 'fat' or image_item['proc'] == 'grow':
         small_bw_img = small_bw_img.filter(ImageFilter.MinFilter(3))
     pad_img = ImageOps.expand(small_bw_img, border=20, fill='black')
-    pad_img.show()
+    # pad_img.show()
     return pad_img
 
 
@@ -226,7 +226,8 @@ def main():
     with open(file_name, 'rb') as f:
         jpeg_contents = f.read()
     predict_date = DATE_RE.search(file_name).group(0) + '_0_0'
-    row_list, predict_dow = process_image(jpeg_contents, source_str, predict_date)
+    row_list, predict_dow = process_image(jpeg_contents, source_str,
+                                          predict_date)
     print('predict dow: {}, temps: {}.'.format(predict_dow, row_list))
 
 
