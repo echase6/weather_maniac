@@ -53,15 +53,16 @@ def crop_enhance_item(img, box, image_item):
     small_bw_img = small_bw_img.point(lambda i: 255 if i > 128 else 0)
     if image_item['proc'] == 'grow':
         size = (image_item['win_x'] * 2, image_item['win_y'] * 2)
-        small_bw_img = small_bw_img.resize(size, resample=0)
+        small_bw_img = small_bw_img.resize(size, Image.ANTIALIAS)
     if image_item['proc'] == 'squish':
-        size = (round(image_item['win_x'] * 1.5), round(image_item['win_y'] / 1.5))
-        small_bw_img = small_bw_img.resize(size, resample=0)
+        small_bw_img = small_bw_img.filter(ImageFilter.MinFilter(5))
+        # size = (round(image_item['win_x'] / 1.0), round(image_item['win_y'] / 1.5))
+        # small_bw_img = small_bw_img.resize(size, Image.ANTIALIAS)
         # small_bw_img = small_bw_img.filter(ImageFilter.MinFilter(3))
-        small_bw_img = small_bw_img.filter(ImageFilter.Kernel(
-            (3, 3), [0, -0.5, 0, -0.5, 2, -0.5, 0, -0.5, 0]
-        )
-        )
+        # small_bw_img = small_bw_img.filter(ImageFilter.Kernel(
+        #     (3, 3), [0, -0.5, 0, -0.5, 2, -0.5, 0, -0.5, 0]
+        # )
+        # )
 
     if image_item['proc'] == 'fat' or image_item['proc'] == 'grow':
         small_bw_img = small_bw_img.filter(ImageFilter.MinFilter(3))
