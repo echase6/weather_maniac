@@ -33,8 +33,15 @@ def render_prediction(request):
 
 
 def render_graph(request):
-    """Render the prediction page."""
-    return render(request, 'weather_maniac/graph.html')
+    """Render the comparison page."""
+    # template_data = []
+    # for source in ['html', 'api', 'jpeg']:  # TODO: Expand to cover other JPEG's
+        # for mtype in models.TYPES:
+    mtype = 'max'
+    template_data = statistics.make_graph_json(mtype)
+    # template_data.append(record)
+    template_list = {'graph': template_data}
+    return render(request, 'weather_maniac/graph.html', template_list)
 
 
 def return_json(request):

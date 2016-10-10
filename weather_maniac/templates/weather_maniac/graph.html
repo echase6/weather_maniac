@@ -28,8 +28,8 @@
       <li><a href="{% url 'index' %}">Home</a></li>
       <li><a href="{% url 'faq' %}">Q &amp A</a></li>
       <li><a href="{% url 'statistics' %}">See Statistics</a></li>
-      <li class="active"><a href="{% url 'prediction' %}">Get a Temp Forecast</a></li>
-      <li><a href="{% url 'graph' %}">Compare Forecasts</a></li>
+      <li><a href="{% url 'prediction' %}">Get a Temp Forecast</a></li>
+      <li class="active"><a href="{% url 'graph' %}">Compare Forecasts</a></li>
     </ul>
   </nav>
   <main>
@@ -57,8 +57,8 @@
   </footer>
     <script src="//code.jquery.com/jquery-2.2.3.js"></script>
     <script src="//d3js.org/d3.v3.min.js"></script>
-    <script src="{% static 'weather_maniac/ajax_csrf_setup.js' %}"></script>
-    <script src="{% static 'weather_maniac/app.js' %}"></script>
-    <script src="{% static 'weather_maniac/prediction.js' %}"></script>
+    <!-- <script src="{% static 'weather_maniac/ajax_csrf_setup.js' %}"></script> -->
+    <script src="{% static 'weather_maniac/graph.js' %}"></script>
+    <!-- <script src="{% static 'weather_maniac/prediction.js' %}"></script> -->
   </body>
 </html>
