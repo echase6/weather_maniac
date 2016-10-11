@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from . import statistics
 from . import models
-import json
+
 
 def render_index(request):
     """Render the index (landing) page."""
@@ -38,9 +38,8 @@ def render_graph(request):
 
 
 def return_graph_json(request):
-    mtype = 'max'
+    mtype = request.GET.get('mtype')
     template_json = statistics.make_graph_json(mtype)
-    # template_json = {'graph': template_data}
     return JsonResponse(template_json, safe=False)
 
 

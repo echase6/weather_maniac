@@ -239,12 +239,12 @@ def make_graph_json(mtype):
     """Return the json item for all forecasts."""
     start_date = datetime.date.today()
     forecast = {}
-    for source in ['html', 'api', 'jpeg']:
+    for source in ['html', 'api', 'jpeg', 'jpeg3']:
         forecast[source] = data_loader.get_forecast(source, mtype, start_date)
     json = []
     for ddate in range(7):
         day_record = {'date': str(start_date + datetime.timedelta(ddate))[:10]}
-        for source in ['html', 'api', 'jpeg']:
+        for source in ['html', 'api', 'jpeg', 'jpeg3']:
             if ddate in forecast[source]:
                 source_name = models.SOURCES[source]['alias'].replace(' ','_')
                 day_record[source_name] = forecast[source][ddate]

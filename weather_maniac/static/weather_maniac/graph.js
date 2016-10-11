@@ -14,7 +14,7 @@ var sourceForm = $('form');
  */
 function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
   var legendWidth  = 100,
-    legendHeight = 240;
+    legendHeight = 320;
 
   var axes = svg.append('g').
     attr('clip-path', 'url(#axes-clip)');
@@ -36,7 +36,7 @@ function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
 
   var legend = svg.append('g').
     attr('class', 'legend').
-    attr('transform', 'translate(' + (chartWidth + 40) + ', 100)');
+    attr('transform', 'translate(' + (chartWidth + 40) + ', 60)');
 
   legend.append('rect').
     attr('class', 'legend-bg').
@@ -44,13 +44,14 @@ function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
     attr('height', legendHeight);
 
   legend.append('text').
-    attr('x', 15).
+    attr('x', 50).
     attr('y', 25).
+    attr('text-anchor', 'middle').
     text('Service A');
 
   legend.append('path').
-    attr('class', 'median-line').
-    attr('d', 'M10,80L85,80');
+    attr('class', 'lineA').
+    attr('d', 'M10,40L85,40');
 
   legend.append('text').
     attr('x', 50).
@@ -58,11 +59,29 @@ function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
     attr('text-anchor', 'middle').
     text('Service B');
 
+  legend.append('path').
+    attr('class', 'lineB').
+    attr('d', 'M10,120L85,120');
+
   legend.append('text').
     attr('x', 50).
     attr('y', 185).
     attr('text-anchor', 'middle').
     text('Service C');
+
+  legend.append('path').
+    attr('class', 'lineC').
+    attr('d', 'M10,200L85,200');
+
+  legend.append('text').
+    attr('x', 50).
+    attr('y', 265).
+    attr('text-anchor', 'middle').
+    text('Service D');
+
+  legend.append('path').
+    attr('class', 'lineD').
+    attr('d', 'M10,280L85,280');
 }
 
 /**
@@ -76,58 +95,48 @@ function drawPaths(svg, data, x, y) {
 
   var lineA = d3.svg.line().
   // .interpolate('basis')
-  x(function(d) {
-    if (typeof d.sourceA !== 'undefined') {
-      return x(d.date);
-    } else {
-      return undefined;
-    }
-  }).
-  y(function(d) {
-    return y(d.sourceA);
-  });
+  x(function(d) {return x(d.date);}).
+  y(function(d) {return y(d.sourceA);}).
+  defined(function(d) { return !isNaN(d.sourceA); });
 
   var lineB = d3.svg.line().
   // .interpolate('basis')
-  x(function(d) {
-    if (typeof d.sourceB !== 'undefined') {
-      return x(d.date);
-    } else {
-      return undefined;
-    }
-  }).
-  y(function(d) {
-    return y(d.sourceB);
-  });
+  x(function(d) {return x(d.date);}).
+  y(function(d) {return y(d.sourceB);}).
+  defined(function(d) { return !isNaN(d.sourceB); });
 
   var lineC = d3.svg.line().
   // .interpolate('basis')
-  x(function(d) {
-    if (typeof d.sourceC !== 'undefined') {
-      return x(d.date);
-    } else {
-      return undefined;
-    }
-  }).
-  y(function(d) {
-    return y(d.sourceC);
-  });
+  x(function(d) {return x(d.date);}).
+  y(function(d) {return y(d.sourceC);}).
+  defined(function(d) { return !isNaN(d.sourceC); });
+
+  var lineD = d3.svg.line().
+  // .interpolate('basis')
+  x(function(d) {return x(d.date);}).
+  y(function(d) {return y(d.sourceD);}).
+  defined(function(d) { return !isNaN(d.sourceD); });
 
   svg.datum(data);
 
   svg.append('path').
-    attr('class', 'median-line').
+    attr('class', 'lineA').
     attr('d', lineA).
     attr('clip-path', 'url(#rect-clip)');
 
   svg.append('path').
-    attr('class', 'median-line').
+    attr('class', 'lineB').
     attr('d', lineB).
     attr('clip-path', 'url(#rect-clip)');
 
   svg.append('path').
-    attr('class', 'median-line').
+    attr('class', 'lineC').
     attr('d', lineC).
+    attr('clip-path', 'url(#rect-clip)');
+
+  svg.append('path').
+    attr('class', 'lineD').
+    attr('d', lineD).
     attr('clip-path', 'url(#rect-clip)');
 }
 
@@ -162,10 +171,11 @@ function makeChart(data) {
     chartHeight = svgHeight - margin.top  - margin.bottom;
 
   var yMerged = [].concat.apply([], data.map(function(d) {
-    return [d.sourceA, d.sourceB, d.sourceC];
+    return [d.sourceA, d.sourceB, d.sourceC, d.sourceD];
   }));
 
   var yExtents = d3.extent(yMerged);
+  yExtents[0] -= 1; yExtents[1] += 1;
 
   var x = d3.time.scale().range([0, chartWidth]).
             domain(d3.extent(data, function(d) { return d.date; })),
@@ -217,7 +227,8 @@ function displayGraph(dataJson) {
       date: parseDate(d.date),
       sourceA: d.Service_A,
       sourceB: d.Service_B,
-      sourceC: d.Service_C
+      sourceC: d.Service_C,
+      sourceD: d.Service_D
     };
   });
 
@@ -252,6 +263,7 @@ function runGraph() {
  */
 function registerEventHandlers() {
   sourceForm.on('submit', runGraph);
+  runGraph();
 }
 
-$(document).ready(runGraph);
+$(document).ready(registerEventHandlers);
