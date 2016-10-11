@@ -11,5 +11,6 @@ urlpatterns = [
     url(r'^faq$', views.render_faq, name='faq'),
     url(r'^prediction$', views.render_prediction, name='prediction'),
     url(r'^graph$', views.render_graph, name='graph'),
+    url(r'^graph_json$', views.return_graph_json, name='graph_json'),
     url(r'^json$', views.return_json, name='json')
 ]

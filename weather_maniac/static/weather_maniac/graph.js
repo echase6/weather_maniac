@@ -1,5 +1,7 @@
 'use strict';
 
+var sourceForm = $('form');
+
 
 /**
  * Add clip path, x, y axes, and legend.
@@ -12,8 +14,7 @@
  */
 function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
   var legendWidth  = 100,
-    legendHeight = 240,
-    radius = 16;
+    legendHeight = 320;
 
   var axes = svg.append('g').
     attr('clip-path', 'url(#axes-clip)');
@@ -35,7 +36,7 @@ function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
 
   var legend = svg.append('g').
     attr('class', 'legend').
-    attr('transform', 'translate(' + (chartWidth + 40) + ', 100)');
+    attr('transform', 'translate(' + (chartWidth + 40) + ', 60)');
 
   legend.append('rect').
     attr('class', 'legend-bg').
@@ -43,47 +44,44 @@ function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
     attr('height', legendHeight);
 
   legend.append('text').
-    attr('x', 15).
-    attr('y', 25).
-    text('Forecast');
-
-  legend.append('circle').
-    attr('class', 'marker-bg').
-    attr('cx', 50).
-    attr('cy', 53).
-    attr('r', radius);
-
-  legend.append('text').
     attr('x', 50).
-    attr('y', 57).
+    attr('y', 25).
     attr('text-anchor', 'middle').
-    text('##');
+    text('Service A');
 
-  legend.append('rect').
-    attr('class', 'outer').
-    attr('width',  80).
-    attr('height', 20).
-    attr('x', 10).
-    attr('y', 120);
+  legend.append('path').
+    attr('class', 'lineA').
+    attr('d', 'M10,40L85,40');
 
   legend.append('text').
     attr('x', 50).
     attr('y', 105).
     attr('text-anchor', 'middle').
-    text('90% Confid.');
+    text('Service B');
 
-  legend.append('rect').
-    attr('class', 'inner').
-    attr('width',  80).
-    attr('height', 20).
-    attr('x', 10).
-    attr('y', 200);
+  legend.append('path').
+    attr('class', 'lineB').
+    attr('d', 'M10,120L85,120');
 
   legend.append('text').
     attr('x', 50).
     attr('y', 185).
     attr('text-anchor', 'middle').
-    text('50% Confid.');
+    text('Service C');
+
+  legend.append('path').
+    attr('class', 'lineC').
+    attr('d', 'M10,200L85,200');
+
+  legend.append('text').
+    attr('x', 50).
+    attr('y', 265).
+    attr('text-anchor', 'middle').
+    text('Service D');
+
+  legend.append('path').
+    attr('class', 'lineD').
+    attr('d', 'M10,280L85,280');
 }
 
 /**
@@ -94,76 +92,52 @@ function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
  * @param  {[type]} y    [description]
  */
 function drawPaths(svg, data, x, y) {
-  var upperOuterArea = d3.svg.area().
-    interpolate('basis').
-    x(function(d) { return x(d.date) || 1; }).
-    y0(function(d) { return y(d.pct95); }).
-    y1(function(d) { return y(d.pct75); });
 
-  var innerArea = d3.svg.area().
-    interpolate('basis').
-    x(function(d) { return x(d.date) || 1; }).
-    y0(function(d) { return y(d.pct75); }).
-    y1(function(d) { return y(d.pct25); });
+  var lineA = d3.svg.line().
+  interpolate('basis').
+  x(function(d) {return x(d.date);}).
+  y(function(d) {return y(d.sourceA);}).
+  defined(function(d) { return !isNaN(d.sourceA); });
 
-  var lowerOuterArea = d3.svg.area().
-    interpolate('basis').
-    x(function(d) { return x(d.date) || 1; }).
-    y0(function(d) { return y(d.pct25); }).
-    y1(function(d) { return y(d.pct05); });
+  var lineB = d3.svg.line().
+  interpolate('basis').
+  x(function(d) {return x(d.date);}).
+  y(function(d) {return y(d.sourceB);}).
+  defined(function(d) { return !isNaN(d.sourceB); });
+
+  var lineC = d3.svg.line().
+  interpolate('basis').
+  x(function(d) {return x(d.date);}).
+  y(function(d) {return y(d.sourceC);}).
+  defined(function(d) { return !isNaN(d.sourceC); });
+
+  var lineD = d3.svg.line().
+  interpolate('basis').
+  x(function(d) {return x(d.date);}).
+  y(function(d) {return y(d.sourceD);}).
+  defined(function(d) { return !isNaN(d.sourceD); });
 
   svg.datum(data);
 
   svg.append('path').
-    attr('class', 'area upper outer').
-    attr('d', upperOuterArea).
+    attr('class', 'lineA').
+    attr('d', lineA).
     attr('clip-path', 'url(#rect-clip)');
 
   svg.append('path').
-    attr('class', 'area lower outer').
-    attr('d', lowerOuterArea).
+    attr('class', 'lineB').
+    attr('d', lineB).
     attr('clip-path', 'url(#rect-clip)');
 
   svg.append('path').
-    attr('class', 'area upper inner').
-    attr('d', innerArea).
+    attr('class', 'lineC').
+    attr('d', lineC).
     attr('clip-path', 'url(#rect-clip)');
-}
 
-/**
- * Add an individual marker.
- * @param {[type]} marker      [description]
- * @param {[type]} svg         [description]
- * @param {[type]} chartHeight [description]
- * @param {[type]} x           [description]
- * @param {[type]} y           [description]
- */
-function addMarker(marker, svg, chartHeight, x, y) {
-  var radius = 16,
-    xPos = x(marker.date) - radius - 3,
-    yPos = y(marker.value) - radius - 3;
-
-  var markerG = svg.append('g').
-    attr('class', 'marker').
-    attr('text-anchor', 'middle').
-    attr('transform', 'translate(' + xPos + ', ' + yPos + ')').
-    attr('opacity', 0);
-
-  markerG.transition().
-    duration(1000).
-    attr('transform', 'translate(' + xPos + ', ' + yPos + ')').
-    attr('opacity', 1);
-
-  markerG.append('circle').
-    attr('class', 'marker-bg').
-    attr('cx', radius).
-    attr('cy', radius).
-    attr('r', radius);
-
-  markerG.append('text').
-    attr('x', radius).
-    attr('y', 21).
-    text(marker.value);
+  svg.append('path').
+    attr('class', 'lineD').
+    attr('d', lineD).
+    attr('clip-path', 'url(#rect-clip)');
 }
 
 /**
@@ -176,17 +150,11 @@ function addMarker(marker, svg, chartHeight, x, y) {
  * @param  {[type]} x           [description]
  * @param  {[type]} y           [description]
  */
-function startTransitions(svg, chartWidth, chartHeight,
-                          rectClip, markers, x, y) {
-  markers.forEach(function(marker, i) {
-    setTimeout(function() {
-      addMarker(marker, svg, chartHeight, x, y);
-    }, 100 + 100 * i);
-  });
+function startTransitions(svg, chartWidth, chartHeight, rectClip, x, y) {
 
   rectClip.transition().
     duration(1000).
-    delay(200 + 100 * markers.length).
+    // delay(200 + 100 * markers.length).
     attr('width', chartWidth);
 }
 
@@ -195,24 +163,24 @@ function startTransitions(svg, chartWidth, chartHeight,
  * @param  {[type]} data    JSON object holding the data
  * @param  {[type]} markers JSON object holding the markers (unused)
  */
-function makeChart(data, markers) {
+function makeChart(data) {
   var svgWidth  = 960,
     svgHeight = 500,
     margin = {top: 20, right: 140, bottom: 40, left: 40},
     chartWidth  = svgWidth  - margin.left - margin.right,
     chartHeight = svgHeight - margin.top  - margin.bottom;
 
-  var yMin = d3.min(data, function(d) { return d.pct05; }),
-    yMax = d3.max(data, function(d) { return d.pct95; });
+  var yMerged = [].concat.apply([], data.map(function(d) {
+    return [d.sourceA, d.sourceB, d.sourceC, d.sourceD];
+  }));
 
-  var yCent = (yMin + yMax) / 2;
-  yMin = yCent - 2 * (yCent - yMin);
-  yMax = yCent + 2 * (yMax - yCent);
+  var yExtents = d3.extent(yMerged);
+  yExtents[0] -= 1; yExtents[1] += 1;
 
   var x = d3.time.scale().range([0, chartWidth]).
             domain(d3.extent(data, function(d) { return d.date; })),
     y = d3.scale.linear().range([chartHeight, 0]).
-            domain([yMin, yMax]);
+            domain(yExtents);
 
   var xAxis = d3.svg.axis().scale(x).orient('bottom').
                 innerTickSize(-chartHeight).
@@ -242,7 +210,7 @@ function makeChart(data, markers) {
 
   addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight);
   drawPaths(svg, data, x, y);
-  startTransitions(svg, chartWidth, chartHeight, rectClip, markers, x, y);
+  startTransitions(svg, chartWidth, chartHeight, rectClip, x, y);
 }
 
 var parseDate  = d3.time.format('%Y-%m-%d').parse;
@@ -254,24 +222,48 @@ var parseDate  = d3.time.format('%Y-%m-%d').parse;
 function displayGraph(dataJson) {
   $('html,body').css('cursor', 'default');
   $('#crazy').remove();
-
   var data = dataJson.map(function(d) {
     return {
       date: parseDate(d.date),
-      pct05: d.pct05,
-      pct25: d.pct25,
-      pct50: d.pct50,
-      pct75: d.pct75,
-      pct95: d.pct95
+      sourceA: d.Service_A,
+      sourceB: d.Service_B,
+      sourceC: d.Service_C,
+      sourceD: d.Service_D
     };
   });
 
-  var markers = dataJson.map(function(marker) {
-    return {
-      date: parseDate(marker.date),
-      value: marker.source_raw
-    };
-  });
-
-  makeChart(data, markers);
+  makeChart(data);
 }
+
+/**
+ * [runGraph description]
+ * @return {[type]} [description]
+ */
+function runGraph() {
+  event.preventDefault();
+  $('html,body').css('cursor', 'wait');
+  if ($('svg').length) { $('svg').remove();}
+  $('#graph').prepend($('<img>',{id: 'crazy',
+    src: '/static/weather_maniac/crazy.gif',
+    style: 'width:300px;height:300px;'}));
+  var actionURL = sourceForm.attr('action');
+  var submitMethod = sourceForm.attr('method');
+  var formData = sourceForm.serialize();
+  return Promise.resolve($.ajax({
+    dataType: 'json',
+    url: actionURL,
+    method: submitMethod,
+    data: formData
+  })).then(displayGraph);
+}
+
+/**
+ * When the document is ready, bid runQuery to the submit button.
+ * @return {[type]} [description]
+ */
+function registerEventHandlers() {
+  sourceForm.on('submit', runGraph);
+  runGraph();
+}
+
+$(document).ready(registerEventHandlers);

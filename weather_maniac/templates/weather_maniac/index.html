@@ -18,7 +18,7 @@
       <h2>...adding confidence to temperature forecasts</h2>
       </div>
       <div>
-        <h4>Info</h4>  <!-- placeholder for more info, such as date -->
+        <h4>{% now "D d M Y" %}</h4>
       </div>
   </header>
   <nav>
@@ -27,6 +27,7 @@
       <li><a href="{% url 'faq' %}">Q &amp A</a></li>
       <li><a href="{% url 'statistics' %}">See Statistics</a></li>
       <li><a href="{% url 'prediction' %}">Get a Temp Forecast</a></li>
+      <li><a href="{% url 'graph' %}">Compare Forecasts</a></li>
 </ul>
   </nav>
   <main>

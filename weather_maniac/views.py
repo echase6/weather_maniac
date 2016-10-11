@@ -33,8 +33,14 @@ def render_prediction(request):
 
 
 def render_graph(request):
-    """Render the prediction page."""
+    """Render the comparison page."""
     return render(request, 'weather_maniac/graph.html')
+
+
+def return_graph_json(request):
+    mtype = request.GET.get('mtype')
+    template_json = statistics.make_graph_json(mtype)
+    return JsonResponse(template_json, safe=False)
 
 
 def return_json(request):

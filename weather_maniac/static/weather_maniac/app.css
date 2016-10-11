@@ -74,3 +74,27 @@ svg {
 .marker text {
   text-anchor: middle;
 }
+
+.lineA {
+  fill: none;
+  stroke: rgba(153, 0, 51, 0.8);
+  stroke-width: 3;
+}
+
+.lineB {
+  fill: none;
+  stroke: rgba(53, 0, 151, 0.8);
+  stroke-width: 3;
+}
+
+.lineC {
+  fill: none;
+  stroke: rgba(53, 100, 51, 0.8);
+  stroke-width: 3;
+}
+
+.lineD {
+  fill: none;
+  stroke: rgba(53, 0, 51, 0.8);
+  stroke-width: 3;
+}

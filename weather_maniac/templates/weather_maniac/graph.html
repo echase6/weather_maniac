@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     <title>Prediction</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/site.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'weather_maniac/prediction.css' %}">
     <link rel="stylesheet" href="{% static 'weather_maniac/app.css' %}">
@@ -28,20 +28,13 @@
       <li><a href="{% url 'index' %}">Home</a></li>
       <li><a href="{% url 'faq' %}">Q &amp A</a></li>
       <li><a href="{% url 'statistics' %}">See Statistics</a></li>
-      <li class="active"><a href="{% url 'prediction' %}">Get a Temp Forecast</a></li>
-      <li><a href="{% url 'graph' %}">Compare Forecasts</a></li>
+      <li><a href="{% url 'prediction' %}">Get a Temp Forecast</a></li>
+      <li class="active"><a href="{% url 'graph' %}">Compare Forecasts</a></li>
     </ul>
   </nav>
   <main>
-    <form action="{% url 'json' %}" method="get">
+    <form action="{% url 'graph_json' %}" method="get">
       {% csrf_token %}
-      <div id="fcst">
-        <label>Forecaster:</label><br>
-        <input type="radio" name="forecaster" value="html" checked="checked"> Service A<br>
-        <input type="radio" name="forecaster" value="api"> Service B<br>
-        <input type="radio" name="forecaster" value="jpeg"> Service C<br>
-        <!-- <input mtype="radio" name="forecaster" value="both"> Both<br> -->
-      </div><br /><br />
       <div id="type">
         <label>Temp:</label><br>
         <input type="radio" name="mtype" value="min"> Low<br>
@@ -58,7 +51,7 @@
     <script src="//code.jquery.com/jquery-2.2.3.js"></script>
     <script src="//d3js.org/d3.v3.min.js"></script>
     <script src="{% static 'weather_maniac/ajax_csrf_setup.js' %}"></script>
-    <script src="{% static 'weather_maniac/app.js' %}"></script>
-    <script src="{% static 'weather_maniac/prediction.js' %}"></script>
+    <script src="{% static 'weather_maniac/graph.js' %}"></script>
+    <!-- <script src="{% static 'weather_maniac/prediction.js' %}"></script> -->
   </body>
 </html>
