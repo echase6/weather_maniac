@@ -76,18 +76,42 @@ function drawPaths(svg, data, x, y) {
 
   var lineA = d3.svg.line().
   // .interpolate('basis')
-  x(function(d) { return x(d.date); }).
-  y(function(d) { return y(d.sourceA); });
+  x(function(d) {
+    if (typeof d.sourceA !== 'undefined') {
+      return x(d.date);
+    } else {
+      return undefined;
+    }
+  }).
+  y(function(d) {
+    return y(d.sourceA);
+  });
 
   var lineB = d3.svg.line().
   // .interpolate('basis')
-  x(function(d) { return x(d.date); }).
-  y(function(d) { return y(d.sourceB); });
+  x(function(d) {
+    if (typeof d.sourceB !== 'undefined') {
+      return x(d.date);
+    } else {
+      return undefined;
+    }
+  }).
+  y(function(d) {
+    return y(d.sourceB);
+  });
 
   var lineC = d3.svg.line().
   // .interpolate('basis')
-  x(function(d) { return x(d.date); }).
-  y(function(d) { return y(d.sourceC); });
+  x(function(d) {
+    if (typeof d.sourceC !== 'undefined') {
+      return x(d.date);
+    } else {
+      return undefined;
+    }
+  }).
+  y(function(d) {
+    return y(d.sourceC);
+  });
 
   svg.datum(data);
 
@@ -137,20 +161,16 @@ function makeChart(data) {
     chartWidth  = svgWidth  - margin.left - margin.right,
     chartHeight = svgHeight - margin.top  - margin.bottom;
 
-  var yMin = d3.min(data, function(d) { return d.sourceA; }),
-    yMax = d3.max(data, function(d) { return d.sourceA; });
+  var yMerged = [].concat.apply([], data.map(function(d) {
+    return [d.sourceA, d.sourceB, d.sourceC];
+  }));
 
-    yMin = 40;
-    yMax = 70;
-
-  var yCent = (yMin + yMax) / 2;
-  yMin = yCent - 2 * (yCent - yMin);
-  yMax = yCent + 2 * (yMax - yCent);
+  var yExtents = d3.extent(yMerged);
 
   var x = d3.time.scale().range([0, chartWidth]).
             domain(d3.extent(data, function(d) { return d.date; })),
     y = d3.scale.linear().range([chartHeight, 0]).
-            domain([yMin, yMax]);
+            domain(yExtents);
 
   var xAxis = d3.svg.axis().scale(x).orient('bottom').
                 innerTickSize(-chartHeight).
