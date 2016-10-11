@@ -18,7 +18,7 @@
       <h2>...adding confidence to temperature forecasts</h2>
       </div>
       <div>
-        <h4>Info</h4>  <!-- placeholder for more info, such as date -->
+        <h4>{% now "D d M Y" %}</h4>
       </div>
   </header>
   <nav>
@@ -27,13 +27,14 @@
   <li class="active"><a href="{% url 'faq' %}">Q &amp A</a></li>
   <li><a href="{% url 'statistics' %}">See Statistics</a></li>
   <li><a href="{% url 'prediction' %}">Get a Temp Forecast</a></li>
+  <li><a href="{% url 'graph' %}">Compare Forecasts</a></li>
 </ul>
   </nav>
   <main>
     <div>
       <p>
-      <strong>Who are the forecasters?</strong> They are being listed as 'Service A'
-      and 'Service B' for now.  It can be said that A's forecasts are being
+      <strong>Who are the forecasters?</strong> They are being listed as Services (i.e., 'Service A)
+      for now.  It can be said that A, C, and D's forecasts are being
       broadcasted in the Portland Area and thus involve a human being, where
       B is an automated weather forecasting service.
     </p>
@@ -44,9 +45,9 @@
     </p>
     <p>
     <strong>How is forecast error calculated?</strong> Weather Maniac archives
-    7-day (Service A) and 5-day (Service B) forecasts on the day they are made, and
-    compares these predictions with the actual High and Low temperatures when
-    they become available (the day after they occur).
+    7-day (Service A, C, D) and 5-day (Service B) forecasts on the day they are
+    made, and compares these predictions with the actual High and Low temperatures
+    when they become available (the day after they occur).
   </p>
     <p>
     <strong>What is Bias?</strong> In short, bias is a consistent offset error in
