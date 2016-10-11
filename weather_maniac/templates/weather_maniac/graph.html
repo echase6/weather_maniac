@@ -33,7 +33,7 @@
     </ul>
   </nav>
   <main>
-    <form action="{% url 'json' %}" method="get">
+    <form action="{% url 'graph_json' %}" method="get">
       {% csrf_token %}
       <div id="fcst">
         <label>Forecaster:</label><br>
@@ -57,7 +57,7 @@
   </footer>
     <script src="//code.jquery.com/jquery-2.2.3.js"></script>
     <script src="//d3js.org/d3.v3.min.js"></script>
-    <!-- <script src="{% static 'weather_maniac/ajax_csrf_setup.js' %}"></script> -->
+    <script src="{% static 'weather_maniac/ajax_csrf_setup.js' %}"></script>
     <script src="{% static 'weather_maniac/graph.js' %}"></script>
     <!-- <script src="{% static 'weather_maniac/prediction.js' %}"></script> -->
   </body>

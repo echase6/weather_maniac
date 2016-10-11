@@ -246,8 +246,8 @@ def make_graph_json(mtype):
         day_record = {'date': str(start_date + datetime.timedelta(ddate))[:10]}
         for source in ['html', 'api', 'jpeg']:
             if ddate in forecast[source]:
-                source_name = models.SOURCES['alias'].replace(' ','_')
-                day_record[source_name] = forecast[source]
+                source_name = models.SOURCES[source]['alias'].replace(' ','_')
+                day_record[source_name] = forecast[source][ddate]
         json.append(day_record)
     return json
 
