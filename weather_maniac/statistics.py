@@ -29,7 +29,7 @@ def get_statistics_per_day(bins):
     (2.0, 0.6324555320336759)
     """
     total = sum([ebin.quantity for ebin in bins])
-    if total == 0:    # Avoids a div by zero error; stats are nulled out.
+    if total <= 1:    # Avoids a div by zero error; stats are nulled out.
         return 0, 0
     mean = sum([ebin.error * ebin.quantity for ebin in bins]) / total
     variance = sum([(ebin.error - mean)**2 * ebin.quantity for ebin in bins])

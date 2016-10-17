@@ -77,7 +77,7 @@ def _qualify_fields(date, day_in_advance, source, max_temp, min_temp):
     if day_in_advance < 0 or day_in_advance > 7:
         raise ValueError('Day in advance not correct.  Got {}'
                          .format(day_in_advance))
-    if max_temp < -99 or max_temp > 199:
+    if max_temp < -99 or max_temp > 199 or max_temp < min_temp:
         raise ValueError('Max temp not correct.  Got {}'.format(str(max_temp)))
     if min_temp < -99 or min_temp > 199:
         raise ValueError('Min temp not correct.  Got {}'.format(str(min_temp)))
@@ -108,7 +108,7 @@ def _qualify_act_fields(date, location, max_temp, min_temp):
         raise ValueError('Date not as expected.  Got {}'.format(date))
     if location not in models.LOCATIONS.values():
         raise ValueError('Location not correct.  Got {}'.format(location))
-    if max_temp < -99 or max_temp > 199:
+    if max_temp < -99 or max_temp > 199 or max_temp < min_temp:
         raise ValueError('Max temp not correct.  Got {}'.format(str(max_temp)))
     if min_temp < -99 or min_temp > 199:
         raise ValueError('Min temp not correct.  Got {}'.format(str(min_temp)))

@@ -94,25 +94,25 @@ function addAxesAndLegend(svg, xAxis, yAxis, margin, chartWidth, chartHeight) {
 function drawPaths(svg, data, x, y) {
 
   var lineA = d3.svg.line().
-  interpolate('basis').
+  // interpolate('basis').
   x(function(d) {return x(d.date);}).
   y(function(d) {return y(d.sourceA);}).
   defined(function(d) { return !isNaN(d.sourceA); });
 
   var lineB = d3.svg.line().
-  interpolate('basis').
+  // interpolate('basis').
   x(function(d) {return x(d.date);}).
   y(function(d) {return y(d.sourceB);}).
   defined(function(d) { return !isNaN(d.sourceB); });
 
   var lineC = d3.svg.line().
-  interpolate('basis').
+  // interpolate('basis').
   x(function(d) {return x(d.date);}).
   y(function(d) {return y(d.sourceC);}).
   defined(function(d) { return !isNaN(d.sourceC); });
 
   var lineD = d3.svg.line().
-  interpolate('basis').
+  // interpolate('basis').
   x(function(d) {return x(d.date);}).
   y(function(d) {return y(d.sourceD);}).
   defined(function(d) { return !isNaN(d.sourceD); });

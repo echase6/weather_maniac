@@ -19,7 +19,7 @@ def render_faq(request):
 def render_statistics(request):
     """Render the statistics (analysis) page."""
     template_stats = []
-    for source in ['html', 'api', 'jpeg']:  # TODO: Expand to cover other JPEG's
+    for source in ['html', 'api', 'jpeg', 'jpeg3']:  # TODO: Expand to cover other JPEG's
         for mtype in models.TYPES:
             record = statistics.make_stats_json(source, mtype)
             template_stats.append(record)
